@@ -1,0 +1,32 @@
+cd js/src
+autoreconf2.13
+CC="/home/jterrace/clang" CXX="/home/jterrace/clang++" CFLAGS="-U__i386__ -I/usr/include/i386-linux-gnu -I/usr/include/c++/4.5 -I/usr/include/c++/4.5/i686-linux-gnu" CXXFLAGS="-U__i386__ -I/usr/include/i386-linux-gnu -I/usr/include/c++/4.5 -I/usr/include/c++/4.5/i686-linux-gnu" ./configure --disable-methodjit --disable-monoic --disable-polyic --disable-tracejit --disable-methodjit-spew --disable-tests --enable-debug --disable-optimize
+
+nano Makefile
+# set ENABLE_JIT=0 and ENABLE_ASSEMBLER=0
+
+#hack /usr/include/stdlib.h:156 to not call asm
+#hack jsapi.h to not call asm
+
+make -C config
+make export
+make -C config export
+make host_jskwgen
+./host_jskwgen /home/jterrace/jsjs/mozilla-central-743ed92f9332/js/src/jsautokw.h
+make host_jsoplengen
+./host_jsoplengen /home/jterrace/jsjs/mozilla-central-743ed92f9332/js/src/jsautooplen.h
+make jscpucfg
+./jscpucfg > jsautocfg.h
+
+nano config/autoconf.mk
+# add -emit-llvm
+
+make -n libs &> todo.txt
+# edit todo.txt to remove non-libs at beginning
+# also remove non-libs at end
+# where it says "entering directory shell", change to "cd shell"
+./todo.txt
+
+#link final shell
+/home/jterrace/llvm-link -o js shell/js.o shell/jsoptparse.o shell/jsworkers.o shell/jsheaptools.o jsalloc.o jsanalyze.o jsapi.o jsarray.o jsatom.o jsbool.o jsclone.o jscntxt.o jscompartment.o jsdate.o jsdbgapi.o jsdhash.o jsdtoa.o jsemit.o jsexn.o jsfriendapi.o jsfun.o jsgc.o jsgcmark.o jsgcchunk.o jsgcstats.o jscrashreport.o jshash.o jsinfer.o jsinterp.o jsiter.o jslock.o jslog2.o jsmath.o jsnativestack.o jsnum.o jsobj.o json.o jsonparser.o jsopcode.o jsparse.o jsproxy.o jsprf.o jsprobes.o jspropertycache.o jspropertytree.o jsreflect.o jsregexp.o jsscan.o jsscope.o jsscript.o jsstr.o jstypedarray.o jsutil.o jswatchpoint.o jsweakmap.o jswrapper.o jsxdrapi.o jsxml.o prmjtime.o sharkctl.o CallObject.o Debugger.o GlobalObject.o Stack.o String.o ParseMaps.o LifoAlloc.o Unicode.o checks.o conversions.o diy-fp.o v8-dtoa.o fast-dtoa.o platform.o utils.o Assertions.o ExecutableAllocator.o ARMAssembler.o MacroAssemblerARM.o PageBlock.o YarrInterpreter.o YarrJIT.o YarrPattern.o YarrSyntaxChecker.o Logging.o ExecutableAllocatorPosix.o OSAllocatorPosix.o jsperf.o pm_stub.o
+

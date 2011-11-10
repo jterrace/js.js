@@ -12,3 +12,7 @@
 * Replace 'getpagesize()' with constant page size of 4096
 
 * In AllocGCChunkEv(), be sure to return the proper value
+
+* In CheckStringLength, remove the JS_UNLIKELY which is a hint to the compiler 
+  that the branch is not likely to be taken. This is translated down into
+  (I think) an llvm intrinsic that emscripten can't deal with.

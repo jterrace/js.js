@@ -8,7 +8,8 @@
 
 * Comment out 0 = 0 
 
-* Remove calls to ``pthread_`` stack size functions, replace with bogus values thus far
+* Remove calls to ``pthread_`` stack size functions, replace with STACK_ROOT
+  TOTAL_STACK 
 
 * Replace ``getpagesize()`` with constant page size of 4096
 

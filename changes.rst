@@ -18,3 +18,18 @@
 * In ``CheckStringLength``, remove the ``JS_UNLIKELY`` which is a hint to the compiler 
   that the branch is not likely to be taken. This is translated down into
   (I think) an llvm intrinsic that emscripten can't deal with.
+
+* In ``BUILD_JSVAL`` in jsval.h, they play a nasty trick with unions to assign
+  to two 32bit fields using a single 64bit value. Emscripten has no idea how to 
+  deal with this. So replace anything that uses the .asBits field such as 
+  l.asBits = (((uint64)(uint32)tag) << 32) | payload;
+  
+  with
+  
+  l.s.payload.i32 = payload;
+  l.s.tag = tag;
+
+  To fix it in the JavaScript directly, you need to assign to the two fields explicelty
+  using HEAP[$addr] = payload and HEAP[$addr + 4] = tag
+  
+         

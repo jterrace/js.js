@@ -33,4 +33,10 @@
   using HEAP[$addr] = payload and HEAP[$addr + 4] = tag
   
 * In the TempAllocPolicy custom malloc, remove the JS_UNLIKELY which is translated
-  down to an intrinsic that emscripten does not handle correctly.  
+  down to an intrinsic that emscripten does not handle correctly.
+
+* The C++ is setup so that the stack decreases in size, thus the recursion check compares the
+  current top of the stack with the maximum. If the current is greater then we have broken
+  the stack. In JS the stack increases size, so the comparison needs to be reversed.
+  ``__ZN13JSCompartment4wrapEP9JSContextPN2JS5ValueE`` in the JS code, and ``jsgc.h`` line
+  67 in the C++

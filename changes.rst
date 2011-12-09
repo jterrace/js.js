@@ -32,4 +32,5 @@
   To fix it in the JavaScript directly, you need to assign to the two fields explicelty
   using HEAP[$addr] = payload and HEAP[$addr + 4] = tag
   
-         
+* In the TempAllocPolicy custom malloc, remove the JS_UNLIKELY which is translated
+  down to an intrinsic that emscripten does not handle correctly.  

@@ -40,3 +40,10 @@
   the stack. In JS the stack increases size, so the comparison needs to be reversed.
   ``__ZN13JSCompartment4wrapEP9JSContextPN2JS5ValueE`` in the JS code, and ``jsgc.h`` line
   67 in the C++
+
+* The function _malloc was changed so that the updated stacktop after the allocation aligns
+  with a multiple of 8. i.e,
+	STATICTOP = Math.Ceil((STATICTOP)/8)*8; 
+	instead of 
+	STATICTOP = Math.Ceil((STATICTOP)/4)*4;
+  This is to prevent the JS_ASSERT calls that fail on misaligned allocations. 

@@ -69,5 +69,5 @@ def mkdir(path, ensure=True):
     except OSError:
         pass
     
-    if not os.path.isdir(path):
+    if ensure and not os.path.isdir(path):
         raise OSError("Failed to create the directory '%s'." % path)

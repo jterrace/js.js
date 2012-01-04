@@ -45,6 +45,7 @@ extern int at_quick_exit (void (*__func) (void)) __THROW __nonnull ((1));
 """
 
             sys.stderr.write(error_msg)
+            sys.exit(1)
 
 def remove_jsapi_asm(line):
     if not line.strip().startswith("//"):

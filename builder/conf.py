@@ -4,6 +4,8 @@ BUILD_DIR = "./build"
 #these paths are relative to the build directory (above) or absolute
 MOZILLA_CENTRAL_DIR = "./mozilla-central"
 LLVM_DIR = "./llvm"
+V8_DIR = "./v8"
+CLOSURE_COMPILER_DIR = "./closure-compiler"
 
 #the URL and tag used to clone mozilla central
 MOZILLA_CENTRAL_URL = "http://hg.mozilla.org/mozilla-central/"
@@ -13,3 +15,9 @@ MOZILLA_CENTRAL_TAG = "AURORA_BASE_20111220"
 LLVM_URL = "http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_30/final/"
 CLANG_URL = "http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_30/final/"
 COMPILER_RT_URL = "http://llvm.org/svn/llvm-project/compiler-rt/tags/RELEASE_30/final/"
+
+#URL for V8 JavaScript engine
+V8_URL = "http://v8.googlecode.com/svn/tags/3.8.4/"
+
+#URL for closure compiler
+CLOSURE_COMPILER_URL = "http://closure-compiler.googlecode.com/files/compiler-latest.zip"

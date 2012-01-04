@@ -8,6 +8,8 @@ import argparse
 
 import conf
 import jsjs.util as util
+import jsjs.compile_filters as compile_filters
+from jsjs.filtering import filter_file
 
 CURDIR = os.path.abspath(os.path.dirname(__file__))
 BUILD_DIR_ABS = util.abspath_join(CURDIR, conf.BUILD_DIR)
@@ -20,8 +22,8 @@ NEEDED_COMMANDS = [("hg", "Mercurial"),
 def ensure_needed_commands():
     for command, name in NEEDED_COMMANDS:
         if util.which(command) is None:
-            sys.stderr.write("Could not find command: '%s'\n" + 
-                             "Install %s and be sure that '%s' is on the path.\n"
+            sys.stderr.write(("Could not find command: '%s'\n" + 
+                             "Install %s and be sure that '%s' is on the path.\n")
                              % (command, name, command))
             sys.exit(1)
 
@@ -112,9 +114,45 @@ def compile():
                       "--disable-optimize"
                       ]
     
-    if not os.path.isfile(util.abspath_join(js_src_dir, "./Makefile")):
+    makefile_path = util.abspath_join(js_src_dir, "./Makefile")
+    if not os.path.isfile(makefile_path):
         print("Using environment:\n" + "\n".join("  %s=%s" % (k,v) for k,v in config_env.iteritems()))
         util.run_command(configure_line, cwd=js_src_dir, env=config_env, shell=True)
+    
+    filter_file(makefile_path, compile_filters.makefile_filters)
+    
+    compile_filters.check_asm()
+    
+    jsapi_h_path = util.abspath_join(js_src_dir, "./jsapi.h")
+    filter_file(jsapi_h_path, compile_filters.jsapi_filters)
+    
+    util.run_command(["make", "-C", "config"], cwd=js_src_dir)
+    #make -C config
+    
+    util.run_command(["make", "export"], cwd=js_src_dir)
+    #make export
+    
+    util.run_command(["make", "-C", "config", "export"], cwd=js_src_dir)
+    #make -C config export
+    
+    util.run_command(["make", "host_jskwgen"], cwd=js_src_dir)
+    #make host_jskwgen
+    
+    jsautokw_path = util.abspath_join(js_src_dir, "./jsautokw.h")
+    util.run_command(["./host_jskwgen", jsautokw_path], cwd=js_src_dir)
+    #./host_jskwgen /home/jterrace/jsjs/mozilla-central-743ed92f9332/js/src/jsautokw.h
+    
+    util.run_command(["make", "host_jsoplengen"], cwd=js_src_dir)
+    #make host_jsoplengen
+    
+    jsautooplen_path = util.abspath_join(js_src_dir, "./jsautooplen.h")
+    util.run_command(["./host_jsoplengen", jsautooplen_path], cwd=js_src_dir)
+    #./host_jsoplengen /home/jterrace/jsjs/mozilla-central-743ed92f9332/js/src/jsautooplen.h
+    
+    # TODO: this seems to be missing now? maybe it was removed?
+    #util.run_command(["make", "jscpucfg"], cwd=js_src_dir)
+    #make jscpucfg
+    #./jscpucfg > jsautocfg.h
     
     print("[DONE] - compile")
 

@@ -151,15 +151,6 @@ def compile(**kwargs):
     
     emconfigure = get_emconfigure_path()
     
-    FLAGS = " ".join(["-Wno-implicit-int"
-                      ])
-
-    config_env = dict(HOST_CC=get_clang_path(),
-                      HOST_CXX=get_clangpp_path(),
-                      HOST_CFLAGS=FLAGS,
-                      HOST_CXXFLAGS=FLAGS
-                      )
-    
     configure_line = [emconfigure,
                       "./configure",
                       "--disable-methodjit",
@@ -174,8 +165,10 @@ def compile(**kwargs):
     
     makefile_path = util.abspath_join(js_src_dir, "./Makefile")
     if not os.path.isfile(makefile_path):
-        print("Using environment:\n" + "\n".join("  %s=%s" % (k,v) for k,v in config_env.iteritems()))
-        util.run_command(configure_line, cwd=js_src_dir, env=dict(os.environ.items() + config_env.items()))
+        util.run_command(configure_line, cwd=js_src_dir)
+    
+    jsapi_h_path = util.abspath_join(js_src_dir, "./jsapi.h")
+    filter_file(jsapi_h_path, compile_filters.jsapi_filters)
     
     util.run_command(["make"], cwd=js_src_dir)
     

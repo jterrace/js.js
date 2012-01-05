@@ -12,7 +12,8 @@ V8_ENGINE = "%V8_ENGINE%"
 CLOSURE_COMPILER = "%CLOSURE_COMPILER%"
 TEMP_DIR = '/tmp'
 COMPILER_ENGINE = V8_ENGINE
-JS_ENGINES = []
+JS_ENGINES = [V8_ENGINE]
+DEBUG_TAGS_SHOWING = [] #add 'frameworkLines' to this list for debugging
 """
 
 def write_emscripten_config(llvm_root, v8_engine, closure_compiler, emscripten_root, dot_emscripten="~/.emscripten"):

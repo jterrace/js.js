@@ -31,8 +31,15 @@ def abspath_join(*args):
 
 def run_command(command, **kwargs):
     """Runs the given command."""
+    added_env = kwargs.pop('added_env', {})
+    if len(added_env) > 0:
+        env = kwargs.pop('env', {})
+        print("Added environment variables for command:")
+        print("  -- " + "\n  -- ".join("%s=%s" % (k,v) for k,v in (env.items() + added_env.items())))
+        env = dict(env.items() + added_env.items() + os.environ.items())
+        kwargs['env'] = env
     print("Running command:\n === " + " ".join(command))
-    subprocess.call(command, **kwargs)
+    return subprocess.call(command, **kwargs)
 
 def hg_clone(url, dest, tag=None):
     """Clones a mercurial repository
@@ -71,3 +78,30 @@ def mkdir(path, ensure=True):
     
     if ensure and not os.path.isdir(path):
         raise OSError("Failed to create the directory '%s'." % path)
+
+def tail( f, window=20 ):
+    """Unix tail for python
+    Taken from http://stackoverflow.com/a/136368/624900
+    """
+    BUFSIZ = 1024
+    f.seek(0, 2)
+    bytes = f.tell()
+    size = window
+    block = -1
+    data = []
+    while size > 0 and bytes > 0:
+        if (bytes - BUFSIZ > 0):
+            # Seek back one whole BUFSIZ
+            f.seek(block*BUFSIZ, 2)
+            # read BUFFER
+            data.append(f.read(BUFSIZ))
+        else:
+            # file too small, start from begining
+            f.seek(0,0)
+            # only read what was not read
+            data.append(f.read(bytes))
+        linesFound = data[-1].count('\n')
+        size -= linesFound
+        bytes -= BUFSIZ
+        block -= 1
+    return '\n'.join(''.join(data).splitlines()[-window:])

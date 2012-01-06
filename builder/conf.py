@@ -9,7 +9,7 @@ CLOSURE_COMPILER_DIR = "./closure-compiler"
 
 #the URL and tag used to clone mozilla central
 MOZILLA_CENTRAL_URL = "http://hg.mozilla.org/mozilla-central/"
-MOZILLA_CENTRAL_TAG = "AURORA_BASE_20111220"
+MOZILLA_CENTRAL_TAG = "AURORA_BASE_20110927"
 
 #the URL for LLVM, Clang, and Compiler RT
 LLVM_URL = "http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_30/final/"

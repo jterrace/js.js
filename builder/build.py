@@ -8,6 +8,8 @@ import argparse
 import urllib
 import zipfile
 import shutil
+import filecmp
+import tempfile
 
 import conf
 import jsjs.util as util
@@ -41,6 +43,10 @@ def get_clang_path():
     return util.abspath_join(get_llvm_dir(), "Debug/bin/clang")
 def get_clangpp_path():
     return util.abspath_join(get_llvm_dir(), "Debug/bin/clang++")
+def get_llvm_link_path():
+    return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-link")
+def get_llvm_dis_path():
+    return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-dis")
 def get_v8_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.V8_DIR, "d8")
 def get_closure_compiler_path():
@@ -49,6 +55,8 @@ def get_emscripten_dir():
     return util.abspath_join(CURDIR, "../external/emscripten")
 def get_emconfigure_path():
     return util.abspath_join(get_emscripten_dir(), "emconfigure")
+def get_emcc_path():
+    return util.abspath_join(get_emscripten_dir(), "emcc")
 
 def deps(**kwargs):
     print("[START] - deps")
@@ -84,7 +92,7 @@ def deps(**kwargs):
         util.run_command(["make"], cwd=llvmdir)
     clang_found = util.is_exe(clang_path) and util.is_exe(clangpp_path)
     if not clang_found:
-        sys.stderr.write("Failed to build LLVM clang/clang++")
+        sys.stderr.write("Failed to build LLVM clang/clang++\n")
         sys.exit(1)
     print("Using clang: " + clang_path)
     print("Using clang++: " + clangpp_path)
@@ -97,7 +105,7 @@ def deps(**kwargs):
     if not util.is_exe(v8_path):
         util.run_command(["scons", "d8"], cwd=v8dir)
     if not util.is_exe(v8_path):
-        sys.stderr.write("Failed to build v8 d8 executable")
+        sys.stderr.write("Failed to build v8 d8 executable\n")
         sys.exit(1)
     print("Using d8: " + v8_path)
     
@@ -111,15 +119,15 @@ def deps(**kwargs):
         z = zipfile.ZipFile(closure_compiler_zip)
         z.extractall(path=closure_compiler_dir)
     if not os.path.isfile(closure_compiler):
-        sys.stderr.write("Failed to get closure compiler")
+        sys.stderr.write("Failed to get closure compiler\n")
         sys.exit(1)
     print("Using compiler.jar: " + closure_compiler)
     
     emscripten_dir = get_emscripten_dir()
     print("Checking for emscripten: '%s'" % emscripten_dir)
     if not util.is_exe(util.abspath_join(emscripten_dir, "emscripten.py")):
-        sys.stderr.write("Could not find emscripten.py in emscripten directory '%s'." % emscripten_dir)
-        sys.stderr.write("Did you forget to run 'git submodule update --init --recursive' after cloning?")
+        sys.stderr.write("Could not find emscripten.py in emscripten directory '%s'.\n" % emscripten_dir)
+        sys.stderr.write("Did you forget to run 'git submodule update --init --recursive' after cloning?\n")
         sys.exit(1)
     
     emscripten.write_emscripten_config(get_llvm_bindir(),
@@ -167,25 +175,123 @@ def compile(**kwargs):
     if not os.path.isfile(makefile_path):
         util.run_command(configure_line, cwd=js_src_dir)
     
+    filter_file(makefile_path, compile_filters.makefile_filters)
+    
     jsapi_h_path = util.abspath_join(js_src_dir, "./jsapi.h")
     filter_file(jsapi_h_path, compile_filters.jsapi_filters)
     
-    util.run_command(["make"], cwd=js_src_dir)
+    MacroAssemblerX86Common_h_path = util.abspath_join(js_src_dir, "./assembler/assembler/MacroAssemblerX86Common.h")
+    filter_file(MacroAssemblerX86Common_h_path, compile_filters.MacroAssemblerX86Common_filters)
+    
+    MacroAssemblerX86Common_cpp_path = util.abspath_join(js_src_dir, "./assembler/assembler/MacroAssemblerX86Common.cpp")
+    filter_file(MacroAssemblerX86Common_cpp_path, compile_filters.MacroAssemblerX86Common_cpp_filters)
+    
+    js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
+    libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
+    make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
+    
+    if not make_success:
+        util.run_command(["make"], cwd=js_src_dir)
+    
+    make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
+    if not make_success:
+        sys.stderr.write("Failed to build spidermonkey. Exiting.\n")
+        sys.exit(1)
+        
+    js_bc = util.abspath_join(BUILD_DIR_ABS, "./js.bc")
+    libjs_bc = util.abspath_join(BUILD_DIR_ABS, "./libjs.bc")
+    
+    try:
+        same_files = filecmp.cmp(js_shell_bc_out, js_bc) and filecmp.cmp(libjs_static_bc_out, libjs_bc)
+    except OSError:
+        same_files = False
+    
+    ranprev = False
+    if not same_files:
+        shutil.copyfile(js_shell_bc_out, js_bc)
+        shutil.copyfile(libjs_static_bc_out, libjs_bc)
+        ranprev = True
+    
+    js_combined_bc = util.abspath_join(BUILD_DIR_ABS, "./js_combined.bc")
+    if ranprev or not os.path.isfile(js_combined_bc):
+        util.run_command([get_llvm_link_path(), '-o', js_combined_bc, libjs_bc, js_bc])
+        ranprev = True
+    
+    js_combined_ll = util.abspath_join(BUILD_DIR_ABS, "./js_combined.ll")
+    if ranprev or not os.path.isfile(js_combined_ll):
+        util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', js_combined_ll, js_combined_bc])
+        ranprev = True
+    
+    if not os.path.isfile(js_combined_ll):
+        sys.stderr.write("Failed to build combined LLVM file.\n")
+        sys.exit(1)
+    
+    print("Built LLVM file:\n -- %s" % js_combined_ll)
+    print(" -- %g MB" % (float(os.path.getsize(js_combined_ll)) / 1024 / 1024,))
     
     print("[DONE] - compile")
 
+def translate(**kwargs):
+    print("[START] - translate")
+    
+    js_combined_ll = util.abspath_join(BUILD_DIR_ABS, "./js_combined.ll")
+    if not os.path.isfile(js_combined_ll):
+        sys.stderr.write("Could not find expected LLVM output file at '%s'.\n" % js_combined_ll)
+        sys.stderr.write("Did you forget to run ./build.py compile ?\n")
+        sys.exit(1)
+    
+    js_js_path = util.abspath_join(BUILD_DIR_ABS, "./js.js")
+    tempdir = ""
+    if not os.path.isfile(js_js_path):
+        added_env = dict(EMCC_LEAVE_INPUTS_RAW='1',
+                         EMCC_DEBUG='1')
+        tempdir = tempfile.mkdtemp(prefix='jsjsbuild')
+        util.run_command([get_emcc_path(),
+                          '-O0',
+                          '--typed-arrays', '0',
+                          '-o', js_js_path,
+                          js_combined_ll],
+                         added_env=added_env,
+                         cwd=tempdir)
+    
+    if not os.path.isfile(js_js_path):
+        sys.stderr.write("Translation failed. Dumping end of output file:\n\n======\n")
+        outfile = util.abspath_join(tempdir, "js.js")
+        try:
+            sys.stderr.write(util.tail(open(outfile, 'r')))
+        except IOError:
+            pass
+        sys.stdout.write("======\n\nYou can also find the error in the temporary emscripten directory above.\n")
+        if tempdir != "":
+            shutil.rmtree(tempdir, ignore_errors=True)
+        sys.exit(1)
+    
+    if tempdir != "":
+        shutil.rmtree(tempdir, ignore_errors=True)
+    
+    print("[DONE] - translate")
+
+def build_all(**kwargs):
+    deps(**kwargs)
+    compile(**kwargs)
+    translate(**kwargs)
+
 def main():
     parser = argparse.ArgumentParser(description='Build script for js.js')
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(title='available commands')
     
-    deps_parser = subparsers.add_parser('deps',
-                                        help='Checks out, builds, and installs dependencies')
+    all_parser = subparsers.add_parser('all', help='Runs deps, compile, and translate')
+    all_parser.set_defaults(func=build_all)
+    
+    deps_parser = subparsers.add_parser('deps', help='Checks out, builds, and installs dependencies')
     deps_parser.set_defaults(func=deps)
     
-    compile_parser = subparsers.add_parser('compile',
-                                         help='Compiles SpiderMonkey into LLVM')
-    compile_parser.add_argument('--clean', action='store_true')
+    compile_parser = subparsers.add_parser('compile', help='Compiles SpiderMonkey into LLVM')
+    compile_parser.add_argument('--clean', action='store_true', help='Cleans out the js/src directory before compiling. Useful for debugging.')
     compile_parser.set_defaults(func=compile)
+    
+    translate_parser = subparsers.add_parser('translate', help='Translates output LLVM file into JS')
+    translate_parser.set_defaults(func=translate)
     
     args = parser.parse_args()
     args.func(**vars(args))

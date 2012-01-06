@@ -189,6 +189,9 @@ def compile(**kwargs):
     expandlibs_config_path = util.abspath_join(js_src_dir, "./config/expandlibs_config.py")
     filter_file(expandlibs_config_path, compile_filters.expandlibs_config_filters)
     
+    jscpucfg_h_path = util.abspath_join(js_src_dir, "./jscpucfg.h")
+    filter_file(jscpucfg_h_path, compile_filters.jscpucfg_filters)
+    
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
     libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
@@ -250,7 +253,12 @@ def translate(**kwargs):
                          EMCC_DEBUG='1')
         tempdir = tempfile.mkdtemp(prefix='jsjsbuild')
         util.run_command([get_emcc_path(),
+                          
                           '-O0',
+                          
+                          #'-O1',
+                          #'-s', 'DISABLE_EXCEPTION_CATCHING=0',
+                          
                           '--typed-arrays', '0',
                           '-o', js_js_path,
                           js_combined_ll],

@@ -83,3 +83,10 @@ def expandlib_config_liststyle_none(line):
 def expandlibs_config_filters(line):
     line = expandlib_config_liststyle_none(line)
     return line
+
+def jscpucfg_stack_direction(line):
+    return line.replace("#define JS_STACK_GROWTH_DIRECTION (-1)", "#define JS_STACK_GROWTH_DIRECTION (1)")
+
+def jscpucfg_filters(line):
+    line = jscpucfg_stack_direction(line)
+    return line

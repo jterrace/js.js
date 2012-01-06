@@ -76,3 +76,10 @@ def change_MacroAssemblerX86Common_cpp_ifdef(line):
 def MacroAssemblerX86Common_cpp_filters(line):
     line = change_MacroAssemblerX86Common_cpp_ifdef(line)
     return line
+
+def expandlib_config_liststyle_none(line):
+    return line.replace("EXPAND_LIBS_LIST_STYLE = \"linkerscript\"", "EXPAND_LIBS_LIST_STYLE = \"none\"")
+
+def expandlibs_config_filters(line):
+    line = expandlib_config_liststyle_none(line)
+    return line

@@ -186,6 +186,9 @@ def compile(**kwargs):
     MacroAssemblerX86Common_cpp_path = util.abspath_join(js_src_dir, "./assembler/assembler/MacroAssemblerX86Common.cpp")
     filter_file(MacroAssemblerX86Common_cpp_path, compile_filters.MacroAssemblerX86Common_cpp_filters)
     
+    expandlibs_config_path = util.abspath_join(js_src_dir, "./config/expandlibs_config.py")
+    filter_file(expandlibs_config_path, compile_filters.expandlibs_config_filters)
+    
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
     libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)

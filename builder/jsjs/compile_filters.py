@@ -74,5 +74,5 @@ def change_MacroAssemblerX86Common_cpp_ifdef(line):
     return line.replace("#if WTF_CPU_X86 || WTF_CPU_X86_64", "#if (WTF_CPU_X86 || WTF_CPU_X86_64) && ENABLE_ASSEMBLER")
 
 def MacroAssemblerX86Common_cpp_filters(line):
-    line = remove_MacroAssemblerX86Common_setSSEState_asm(line)
+    line = change_MacroAssemblerX86Common_cpp_ifdef(line)
     return line

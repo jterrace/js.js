@@ -1,4 +1,31 @@
+FIXED
+------
+
 * Allow mmap to accept the -1 anon location
+
+* Remove calls to ``pthread_`` stack size functions, replace with STACK_ROOT
+  TOTAL_STACK 
+
+* Replace ``getpagesize()`` with constant page size of 4096
+
+* In ``CheckStringLength``, remove the ``JS_UNLIKELY`` which is a hint to the compiler 
+  that the branch is not likely to be taken. This is translated down into
+  (I think) an llvm intrinsic that emscripten can't deal with.
+
+* In the TempAllocPolicy custom malloc, remove the JS_UNLIKELY which is translated
+  down to an intrinsic that emscripten does not handle correctly.
+
+* The C++ is setup so that the stack decreases in size, thus the recursion check compares the
+  current top of the stack with the maximum. If the current is greater then we have broken
+  the stack. In JS the stack increases size, so the comparison needs to be reversed.
+  ``__ZN13JSCompartment4wrapEP9JSContextPN2JS5ValueE`` in the JS code, and ``jsgc.h`` line
+  67 in the C++
+
+
+TODOs
+-----
+
+* In ``AllocGCChunkEv()``, be sure to return the proper value
 
 * Map Pages alignment fix, in ``AllocGCChunkEv``::
 
@@ -8,16 +35,10 @@
 
 * Comment out 0 = 0 
 
-* Remove calls to ``pthread_`` stack size functions, replace with STACK_ROOT
-  TOTAL_STACK 
 
-* Replace ``getpagesize()`` with constant page size of 4096
 
-* In ``AllocGCChunkEv()``, be sure to return the proper value
-
-* In ``CheckStringLength``, remove the ``JS_UNLIKELY`` which is a hint to the compiler 
-  that the branch is not likely to be taken. This is translated down into
-  (I think) an llvm intrinsic that emscripten can't deal with.
+DOUBTFUL
+---------
 
 * In ``BUILD_JSVAL`` in jsval.h, they play a nasty trick with unions to assign
   to two 32bit fields using a single 64bit value. Emscripten has no idea how to 
@@ -32,14 +53,6 @@
   To fix it in the JavaScript directly, you need to assign to the two fields explicelty
   using HEAP[$addr] = payload and HEAP[$addr + 4] = tag
   
-* In the TempAllocPolicy custom malloc, remove the JS_UNLIKELY which is translated
-  down to an intrinsic that emscripten does not handle correctly.
-
-* The C++ is setup so that the stack decreases in size, thus the recursion check compares the
-  current top of the stack with the maximum. If the current is greater then we have broken
-  the stack. In JS the stack increases size, so the comparison needs to be reversed.
-  ``__ZN13JSCompartment4wrapEP9JSContextPN2JS5ValueE`` in the JS code, and ``jsgc.h`` line
-  67 in the C++
 
 * The function _malloc was changed so that the updated stacktop after the allocation aligns
   with a multiple of 8. i.e,

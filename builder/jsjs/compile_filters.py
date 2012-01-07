@@ -85,8 +85,28 @@ def expandlibs_config_filters(line):
     return line
 
 def jscpucfg_stack_direction(line):
+    line = line.replace("# define JS_STACK_GROWTH_DIRECTION (-1)", "# define JS_STACK_GROWTH_DIRECTION (1)")
     return line.replace("#define JS_STACK_GROWTH_DIRECTION (-1)", "#define JS_STACK_GROWTH_DIRECTION (1)")
 
 def jscpucfg_filters(line):
     line = jscpucfg_stack_direction(line)
+    return line
+
+def bytes_per_word(line):
+    return line.replace("#define JS_BYTES_PER_WORD 8", "#define JS_BYTES_PER_WORD 4")
+
+def align_of_pointer(line):
+    return line.replace("#define JS_ALIGN_OF_POINTER 8", "#define JS_ALIGN_OF_POINTER 4")
+
+def bits_per_word(line):
+    return line.replace("#define JS_BITS_PER_WORD_LOG2 6", "#define JS_BITS_PER_WORD_LOG2 5")
+
+def jsconfig_filters(line):
+    line = bytes_per_word(line)
+    return line
+
+def jsconfdefs_filters(line):
+    line = bytes_per_word(line)
+    line = align_of_pointer(line)
+    line = bits_per_word(line)
     return line

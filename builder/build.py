@@ -234,7 +234,10 @@ def compile(**kwargs):
     
     expandlibs_config_path = util.abspath_join(js_src_dir, "./config/expandlibs_config.py")
     filter_file(expandlibs_config_path, compile_filters.expandlibs_config_filters)
-      
+    
+    jsgcchunk_cpp_path = util.abspath_join(js_src_dir, "./jsgcchunk.cpp")
+    filter_file(jsgcchunk_cpp_path, compile_filters.jsgchunk_cpp_filters)
+    
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
     libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)

@@ -110,3 +110,11 @@ def jsconfdefs_filters(line):
     line = align_of_pointer(line)
     line = bits_per_word(line)
     return line
+
+def map_pages_hack(line):
+    #FIXME: this leaks memory, but is an acceptable hack for now since emscripten doesn't even implement free()
+    return line.replace("p = MapPages(FindChunkStart(p), GC_CHUNK_SIZE);", "p = (void *)((size_t)p + GC_CHUNK_SIZE - ((size_t)p % GC_CHUNK_SIZE));")
+
+def jsgchunk_cpp_filters(line):
+    line = map_pages_hack(line)
+    return line

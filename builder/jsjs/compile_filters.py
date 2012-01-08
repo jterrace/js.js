@@ -118,3 +118,13 @@ def map_pages_hack(line):
 def jsgchunk_cpp_filters(line):
     line = map_pages_hack(line)
     return line
+
+def strip_js_likely(line):
+    return line.replace("# define JS_LIKELY(x)   (__builtin_expect((x), 1))", "# define JS_LIKELY(x)   (x)")
+def strip_js_unlikely(line):
+    return line.replace("# define JS_UNLIKELY(x) (__builtin_expect((x), 0))", "# define JS_UNLIKELY(x) (x)")
+
+def jstypes_h_filters(line):
+    line = strip_js_likely(line)
+    line = strip_js_unlikely(line)
+    return line

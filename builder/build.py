@@ -257,6 +257,9 @@ def compile(**kwargs):
         jsconfdefs_h_path = util.abspath_join(js_src_dir, "./js-confdefs.h")
         filter_file(jsconfdefs_h_path, compile_filters.jsconfdefs_filters)
         
+        jstypes_h_path = util.abspath_join(js_src_dir, "./jstypes.h")
+        filter_file(jstypes_h_path, compile_filters.jstypes_h_filters)
+        
         util.run_command(["make"], cwd=js_src_dir)
     
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
@@ -307,38 +310,36 @@ def translate(**kwargs):
         sys.exit(1)
     
     js_js_path = util.abspath_join(BUILD_DIR_ABS, "./js.js")
-    tempdir = ""
-    if not os.path.isfile(js_js_path):
-        added_env = dict(EMCC_LEAVE_INPUTS_RAW='1',
-                         EMCC_DEBUG='1')
-        tempdir = tempfile.mkdtemp(prefix='jsjsbuild')
-        util.run_command([get_emcc_path(),
-                          
-                          '-O0',
-                          
-                          #'-O1',
-                          #'-s', 'DISABLE_EXCEPTION_CATCHING=0',
-                          
-                          '--typed-arrays', '0',
-                          '-o', js_js_path,
-                          js_combined_ll],
-                         added_env=added_env,
-                         cwd=tempdir)
+
+    added_env = dict(EMCC_LEAVE_INPUTS_RAW='1',
+                     EMCC_DEBUG='1')
     
-    if not os.path.isfile(js_js_path):
+    util.run_command([get_emcc_path(),
+                      
+                      '-O0',
+                      
+                      #'-O1',
+                      #'-s', 'DISABLE_EXCEPTION_CATCHING=0',
+                      
+                      '--typed-arrays', '0',
+                      '-o', js_js_path,
+                      js_combined_ll],
+                     added_env=added_env,
+                     cwd=BUILD_DIR_ABS)
+    
+    last_lines = ""
+    try:
+        last_lines = util.tail(open(js_js_path, 'r'), window=25)
+    except IOError:
+        pass
+    
+    if not os.path.isfile(js_js_path) or "error" in last_lines.lower():
         sys.stderr.write("Translation failed. Dumping end of output file:\n\n======\n")
-        outfile = util.abspath_join(tempdir, "js.js")
-        try:
-            sys.stderr.write(util.tail(open(outfile, 'r')))
-        except IOError:
-            pass
+        sys.stderr.write(last_lines)
         sys.stdout.write("======\n\nYou can also find the error in the temporary emscripten directory above.\n")
-        if tempdir != "":
-            shutil.rmtree(tempdir, ignore_errors=True)
         sys.exit(1)
-    
-    if tempdir != "":
-        shutil.rmtree(tempdir, ignore_errors=True)
+        
+    print("js.js at '%s'" % js_js_path)
     
     print("[DONE] - translate")
 

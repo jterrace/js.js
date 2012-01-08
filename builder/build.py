@@ -10,6 +10,7 @@ import zipfile
 import shutil
 import filecmp
 import tempfile
+import tarfile
 
 import conf
 import jsjs.util as util
@@ -24,8 +25,7 @@ NEEDED_COMMANDS = [("hg", "Mercurial"),
                    ("svn", "Subversion"),
                    ("make", "Make"),
                    ("autoreconf2.13", "autoreconf 2.13"),
-                   ("scons", "SCons"),
-                   ("node", "node.js")]
+                   ("scons", "SCons")]
 
 def ensure_needed_commands():
     for command, name in NEEDED_COMMANDS:
@@ -49,6 +49,8 @@ def get_llvm_dis_path():
     return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-dis")
 def get_v8_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.V8_DIR, "d8")
+def get_spidermonkey_path():
+    return util.abspath_join(BUILD_DIR_ABS, conf.SPIDERMONKEY_DIR, "js/src/shell/js")
 def get_closure_compiler_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.CLOSURE_COMPILER_DIR, "compiler.jar")
 def get_emscripten_dir():
@@ -57,6 +59,10 @@ def get_emconfigure_path():
     return util.abspath_join(get_emscripten_dir(), "emconfigure")
 def get_emcc_path():
     return util.abspath_join(get_emscripten_dir(), "emcc")
+def get_nodejs_dir():
+    return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.6.7")
+def get_nodejs_path():
+    return util.abspath_join(get_nodejs_dir(), "node")
 
 def deps(**kwargs):
     print("[START] - deps")
@@ -113,6 +119,7 @@ def deps(**kwargs):
     util.mkdir(closure_compiler_dir)
     closure_compiler_zip = util.abspath_join(closure_compiler_dir, "compiler-latest.zip")
     if not os.path.isfile(closure_compiler_zip):
+        print("Downloading '%s' -> '%s'" % (conf.CLOSURE_COMPILER_URL, closure_compiler_zip))
         urllib.urlretrieve(conf.CLOSURE_COMPILER_URL, closure_compiler_zip)
     closure_compiler = get_closure_compiler_path()
     if not os.path.isfile(closure_compiler):
@@ -122,6 +129,43 @@ def deps(**kwargs):
         sys.stderr.write("Failed to get closure compiler\n")
         sys.exit(1)
     print("Using compiler.jar: " + closure_compiler)
+    
+    spidermonkey_dir = util.abspath_join(BUILD_DIR_ABS, conf.SPIDERMONKEY_DIR)
+    print("Checking for SpiderMonkey: '%s'" % spidermonkey_dir)
+    if not os.path.isdir(util.abspath_join(spidermonkey_dir, "browser")):
+        util.hg_clone(conf.SPIDERMONKEY_URL, spidermonkey_dir, conf.SPIDERMONKEY_TAG)
+    spidermonkey_build_dir = util.abspath_join(spidermonkey_dir, "js/src")
+    spidermonkey_path = get_spidermonkey_path()
+    if not os.path.isfile(util.abspath_join(spidermonkey_build_dir, "configure")):
+        util.run_command(["autoreconf2.13"], cwd=spidermonkey_build_dir)
+    if not os.path.isfile(util.abspath_join(spidermonkey_build_dir, "Makefile")):
+        util.run_command(["./configure"], cwd=spidermonkey_build_dir)
+    if not util.is_exe(spidermonkey_path):
+        util.run_command(["make"], cwd=spidermonkey_build_dir)
+    if not util.is_exe(spidermonkey_path):
+        sys.stderr.write("Failed to build SpiderMonkey js executable\n")
+        sys.exit(1)
+    print("Using js: " + spidermonkey_path)
+    
+    nodejs_dir = util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR)
+    util.mkdir(nodejs_dir)
+    nodejs_tgz = util.abspath_join(nodejs_dir, os.path.basename(conf.NODEJS_URL))
+    if not os.path.isfile(nodejs_tgz):
+        print("Downloading '%s' -> '%s'" % (conf.NODEJS_URL, nodejs_tgz))
+        urllib.urlretrieve(conf.NODEJS_URL, nodejs_tgz)
+    nodejs_dir_path = get_nodejs_dir()
+    if not os.path.isfile(util.abspath_join(nodejs_dir_path, "./configure")):
+        print("Extracting '%s' -> '%s'" % (nodejs_tgz, nodejs_dir))
+        t = tarfile.open(nodejs_tgz)
+        t.extractall(path=nodejs_dir)
+    nodejs_path = get_nodejs_path()
+    if not util.is_exe(nodejs_path):
+        util.run_command(["./configure"], cwd=nodejs_dir_path)
+        util.run_command(["make"], cwd=nodejs_dir_path)
+    if not util.is_exe(nodejs_path):
+        sys.stderr.write("Failed to build nodejs.\n")
+        sys.exit(1)
+    print("Using node: " + nodejs_path)
     
     emscripten_dir = get_emscripten_dir()
     print("Checking for emscripten: '%s'" % emscripten_dir)
@@ -133,7 +177,9 @@ def deps(**kwargs):
     emscripten.write_emscripten_config(get_llvm_bindir(),
                                        get_v8_path(),
                                        get_closure_compiler_path(),
-                                       get_emscripten_dir())
+                                       get_emscripten_dir(),
+                                       get_spidermonkey_path(),
+                                       get_nodejs_path())
     
     print("[DONE] - deps")
 

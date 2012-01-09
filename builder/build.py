@@ -311,21 +311,26 @@ def translate(**kwargs):
     
     js_js_path = util.abspath_join(BUILD_DIR_ABS, "./js.js")
 
-    added_env = dict(EMCC_LEAVE_INPUTS_RAW='1',
-                     EMCC_DEBUG='1')
+    added_env = dict(EMCC_DEBUG='1')
     
-    util.run_command([get_emcc_path(),
-                      
-                      '-O0',
-                      
-                      #'-O1',
-                      #'-s', 'DISABLE_EXCEPTION_CATCHING=0',
-                      
-                      '--typed-arrays', '0',
-                      '-o', js_js_path,
-                      js_combined_ll],
-                     added_env=added_env,
-                     cwd=BUILD_DIR_ABS)
+    opt_level = kwargs['O']
+    extra_args = ['--typed-arrays', '0',
+                  '-O' + str(opt_level)]
+    
+    if opt_level == 0:
+        added_env['EMCC_LEAVE_INPUTS_RAW']='1'
+        
+    if kwargs.get('label_debug', False):
+        extra_args.append('-s')
+        extra_args.append('LABEL_DEBUG=1')
+    
+    args = [get_emcc_path()]
+    args.extend(extra_args)
+    args.append('-o')
+    args.append(js_js_path)
+    args.append(js_combined_ll)
+    
+    util.run_command(args, added_env=added_env, cwd=BUILD_DIR_ABS)
     
     last_lines = ""
     try:
@@ -352,18 +357,24 @@ def main():
     parser = argparse.ArgumentParser(description='Build script for js.js')
     subparsers = parser.add_subparsers(title='available commands')
     
-    all_parser = subparsers.add_parser('all', help='Runs deps, compile, and translate')
-    all_parser.set_defaults(func=build_all)
-    
-    deps_parser = subparsers.add_parser('deps', help='Checks out, builds, and installs dependencies')
+    deps_parser = subparsers.add_parser('deps', help='Checks out, builds, and installs dependencies', add_help=False)
     deps_parser.set_defaults(func=deps)
     
-    compile_parser = subparsers.add_parser('compile', help='Compiles SpiderMonkey into LLVM')
+    compile_parser = subparsers.add_parser('compile', help='Compiles SpiderMonkey into LLVM', add_help=False)
     compile_parser.add_argument('--clean', action='store_true', help='Cleans out the js/src directory before compiling. Useful for debugging.')
     compile_parser.set_defaults(func=compile)
     
-    translate_parser = subparsers.add_parser('translate', help='Translates output LLVM file into JS')
+    translate_parser = subparsers.add_parser('translate', help='Translates output LLVM file into JS', add_help=False)
+    translate_parser.add_argument('-O', type=int, help='Specify optimization level (default: %(default)s)', default=0, choices=[0,1,2])
+    translate_parser.add_argument('--label-debug', action='store_true', help='Runs translation with LABEL_DEBUG=1. This prints tracing information when running.')
     translate_parser.set_defaults(func=translate)
+    
+    all_subparsers = [deps_parser, compile_parser, translate_parser]
+    all_parser = subparsers.add_parser('all', help='Runs deps, compile, and translate', parents=all_subparsers)
+    all_parser.set_defaults(func=build_all)
+    
+    for subparser in all_subparsers:
+        subparser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS, help='show this help message and exit')
     
     args = parser.parse_args()
     args.func(**vars(args))

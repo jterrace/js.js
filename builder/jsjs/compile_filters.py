@@ -128,3 +128,9 @@ def jstypes_h_filters(line):
     line = strip_js_likely(line)
     line = strip_js_unlikely(line)
     return line
+
+def strip_null_null(line):
+    return line.replace("*((int*)NULL) = 0;", "")
+def jsinfer_cpp_filters(line):
+    line = strip_null_null(line)
+    return line

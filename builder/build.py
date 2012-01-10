@@ -238,6 +238,9 @@ def compile(**kwargs):
     jsgcchunk_cpp_path = util.abspath_join(js_src_dir, "./jsgcchunk.cpp")
     filter_file(jsgcchunk_cpp_path, compile_filters.jsgchunk_cpp_filters)
     
+    jsinfer_cpp_path = util.abspath_join(js_src_dir, "./jsinfer.cpp")
+    filter_file(jsinfer_cpp_path, compile_filters.jsinfer_cpp_filters)
+    
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
     libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
@@ -314,11 +317,12 @@ def translate(**kwargs):
     added_env = dict(EMCC_DEBUG='1')
     
     opt_level = kwargs['O']
-    extra_args = ['--typed-arrays', '0',
-                  '-O' + str(opt_level)]
+    extra_args = ['-O' + str(opt_level)]
     
     if opt_level == 0:
         added_env['EMCC_LEAVE_INPUTS_RAW']='1'
+        extra_args.append('--typed-arrays')
+        extra_args.append('0')
         
     if kwargs.get('label_debug', False):
         extra_args.append('-s')

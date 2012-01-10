@@ -321,17 +321,16 @@ def translate(**kwargs):
     
     if opt_level == 0:
         added_env['EMCC_LEAVE_INPUTS_RAW']='1'
-        extra_args.append('--typed-arrays')
-        extra_args.append('0')
+        #extra_args.extend(['--closure', '1'])
+
+    extra_args.extend(['--typed-arrays', '0'])
         
     if kwargs.get('label_debug', False):
-        extra_args.append('-s')
-        extra_args.append('LABEL_DEBUG=1')
+        extra_args.extend(['-s', 'LABEL_DEBUG=1'])
     
     args = [get_emcc_path()]
     args.extend(extra_args)
-    args.append('-o')
-    args.append(js_js_path)
+    args.extend(['-o', js_js_path])
     args.append(js_combined_ll)
     
     util.run_command(args, added_env=added_env, cwd=BUILD_DIR_ABS)

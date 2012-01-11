@@ -29,14 +29,7 @@ FIXED
    $call = $call + 1048576;
    $call = $call & 0xFFFFFFFFFFF00000;
 
-TODOs
------
-
 * Comment out 0 = 0 
-
-
-DOUBTFUL
---------
 
 * In ``BUILD_JSVAL`` in jsval.h, they play a nasty trick with unions to assign
   to two 32bit fields using a single 64bit value. Emscripten has no idea how to 

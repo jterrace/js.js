@@ -63,6 +63,8 @@ def get_nodejs_dir():
     return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.6.7")
 def get_nodejs_path():
     return util.abspath_join(get_nodejs_dir(), "node")
+def get_jsjs_out():
+    return util.abspath_join(BUILD_DIR_ABS, "./js.js")
 
 def deps(**kwargs):
     print("[START] - deps")
@@ -312,7 +314,7 @@ def translate(**kwargs):
         sys.stderr.write("Did you forget to run ./build.py compile ?\n")
         sys.exit(1)
     
-    js_js_path = util.abspath_join(BUILD_DIR_ABS, "./js.js")
+    js_js_path = get_jsjs_out()
 
     added_env = dict(EMCC_DEBUG='1')
     
@@ -321,12 +323,12 @@ def translate(**kwargs):
     
     if opt_level == 0:
         added_env['EMCC_LEAVE_INPUTS_RAW']='1'
-        #extra_args.extend(['--closure', '1'])
-
-    extra_args.extend(['--typed-arrays', '0'])
-        
-    if kwargs.get('label_debug', False):
-        extra_args.extend(['-s', 'LABEL_DEBUG=1'])
+    
+    extra_args.extend(['--typed-arrays', str(kwargs['typed_arrays'])])
+    extra_args.extend(['--closure', str(kwargs['closure'])])
+    extra_args.extend(['-s', 'LABEL_DEBUG=%d' % kwargs['label_debug']])
+    
+    extra_args.extend(['-s', 'DISABLE_EXCEPTION_CATCHING=0'])
     
     args = [get_emcc_path()]
     args.extend(extra_args)
@@ -356,6 +358,24 @@ def build_all(**kwargs):
     compile(**kwargs)
     translate(**kwargs)
 
+def multiconfig(**kwargs):
+    orig_outfile = get_jsjs_out()
+    for opt_level in [0, 1]:
+        for typed_arrays in [0, 1]:
+            for closure in [0, 1]:
+                args = {'O': opt_level,
+                        'typed_arrays': typed_arrays,
+                        'closure': closure,
+                        'label_debug': 0}
+                out_filename = 'js.O%d.%s-closure.%s-typedarrays.js' % (opt_level,
+                                                                        'Y' if closure == 1 else 'N',
+                                                                        'Y' if typed_arrays == 1 else 'N')
+                print("Working on generating '%s'" % out_filename)
+                translate(**args)
+                out_filename = util.abspath_join(BUILD_DIR_ABS, out_filename)
+                print("Copying '%s' -> '%s'" % (orig_outfile, out_filename))
+                shutil.move(orig_outfile, out_filename)
+
 def main():
     parser = argparse.ArgumentParser(description='Build script for js.js')
     subparsers = parser.add_subparsers(title='available commands')
@@ -369,7 +389,9 @@ def main():
     
     translate_parser = subparsers.add_parser('translate', help='Translates output LLVM file into JS', add_help=False)
     translate_parser.add_argument('-O', type=int, help='Specify optimization level (default: %(default)s)', default=0, choices=[0,1,2])
-    translate_parser.add_argument('--label-debug', action='store_true', help='Runs translation with LABEL_DEBUG=1. This prints tracing information when running.')
+    translate_parser.add_argument('--label-debug', type=int, help='Runs translation with LABEL_DEBUG=1. This prints tracing information when running. (default: %(default)s)', default=0, choices=[0,1])
+    translate_parser.add_argument('--closure', type=int, help='Closure compiles the output. (default: %(default)s)', default=0, choices=[0,1])
+    translate_parser.add_argument('--typed-arrays', type=int, help='Turns on typed arrays (default: %(default)s)', default=0, choices=[0,1])
     translate_parser.set_defaults(func=translate)
     
     all_subparsers = [deps_parser, compile_parser, translate_parser]
@@ -378,6 +400,9 @@ def main():
     
     for subparser in all_subparsers:
         subparser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS, help='show this help message and exit')
+    
+    multiconfig_parser = subparsers.add_parser('multiconfig', help='Calls translate with many combinations of optimizations and saves the files to the build directory.')
+    multiconfig_parser.set_defaults(func=multiconfig)
     
     args = parser.parse_args()
     args.func(**vars(args))

@@ -12,10 +12,14 @@ def disable_yarr(line):
 def disable_yarr_jit(line):
     return line.replace("ENABLE_YARR_JIT = 1", "ENABLE_YARR_JIT = 0")
     
+def enable_pcre(line):
+    return line.replace("ifeq (,$(filter arm% sparc %86 x86_64,$(TARGET_CPU)))", "ifeq (,)")
+    
 def makefile_filters(line):
     line = disable_assembler(line)
     line = disable_jit(line)
     line = disable_yarr_jit(line)
+    line = enable_pcre(line)
     return line
 
 def check_asm():
@@ -101,6 +105,9 @@ def align_of_pointer(line):
 def bits_per_word(line):
     return line.replace("#define JS_BITS_PER_WORD_LOG2 6", "#define JS_BITS_PER_WORD_LOG2 5")
 
+def remove_methodjit_typed_array(line):
+    return line.replace("#define JS_METHODJIT_TYPED_ARRAY 1", "")
+
 def jsconfig_filters(line):
     line = bytes_per_word(line)
     return line
@@ -109,6 +116,7 @@ def jsconfdefs_filters(line):
     line = bytes_per_word(line)
     line = align_of_pointer(line)
     line = bits_per_word(line)
+    line = remove_methodjit_typed_array(line)
     return line
 
 def map_pages_hack(line):
@@ -133,4 +141,22 @@ def strip_null_null(line):
     return line.replace("*((int*)NULL) = 0;", "")
 def jsinfer_cpp_filters(line):
     line = strip_null_null(line)
+    return line
+
+def disable_jit_define(line):
+    return "" if "#define ENABLE_JIT" in line else line
+def disable_yarr_define(line):
+    return "" if "#define ENABLE_YARR" in line else line
+def disable_yarr_jit_define(line):
+    return "" if "#define ENABLE_YARR_JIT" in line else line
+def disable_wtf_use_jit_stub_argument_register_define(line):
+    return "" if "#define WTF_USE_JIT_STUB_ARGUMENT_REGISTER" in line else line
+def disable_assembler(line):
+    return "" if "#define ENABLE_ASSEMBLER" in line else line
+def platform_h_filters(line):
+    line = disable_jit_define(line)
+    line = disable_yarr_define(line)
+    line = disable_yarr_jit_define(line)
+    line = disable_wtf_use_jit_stub_argument_register_define(line)
+    line = disable_assembler(line)
     return line

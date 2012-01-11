@@ -243,6 +243,9 @@ def compile(**kwargs):
     jsinfer_cpp_path = util.abspath_join(js_src_dir, "./jsinfer.cpp")
     filter_file(jsinfer_cpp_path, compile_filters.jsinfer_cpp_filters)
     
+    platform_h_path = util.abspath_join(js_src_dir, "./assembler/wtf/Platform.h")
+    filter_file(platform_h_path, compile_filters.platform_h_filters)
+    
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
     libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
@@ -343,11 +346,11 @@ def translate(**kwargs):
     except IOError:
         pass
     
-    if not os.path.isfile(js_js_path) or "error" in last_lines.lower():
-        sys.stderr.write("Translation failed. Dumping end of output file:\n\n======\n")
-        sys.stderr.write(last_lines)
-        sys.stdout.write("======\n\nYou can also find the error in the temporary emscripten directory above.\n")
-        sys.exit(1)
+    #if not os.path.isfile(js_js_path) or "error" in last_lines.lower():
+    #    sys.stderr.write("Translation failed. Dumping end of output file:\n\n======\n")
+    #    sys.stderr.write(last_lines)
+    #    sys.stdout.write("======\n\nYou can also find the error in the temporary emscripten directory above.\n")
+    #    sys.exit(1)
         
     print("js.js at '%s'" % js_js_path)
     

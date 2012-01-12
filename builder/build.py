@@ -327,7 +327,7 @@ def translate(**kwargs):
     if opt_level == 0:
         added_env['EMCC_LEAVE_INPUTS_RAW']='1'
     
-    extra_args.extend(['--typed-arrays', str(kwargs['typed_arrays'])])
+    extra_args.extend(['--typed-arrays', '2'])
     extra_args.extend(['--closure', str(kwargs['closure'])])
     extra_args.extend(['-s', 'LABEL_DEBUG=%d' % kwargs['label_debug']])
     
@@ -364,20 +364,17 @@ def build_all(**kwargs):
 def multiconfig(**kwargs):
     orig_outfile = get_jsjs_out()
     for opt_level in [0, 1]:
-        for typed_arrays in [0, 1]:
-            for closure in [0, 1]:
-                args = {'O': opt_level,
-                        'typed_arrays': typed_arrays,
-                        'closure': closure,
-                        'label_debug': 0}
-                out_filename = 'js.O%d.%s-closure.%s-typedarrays.js' % (opt_level,
-                                                                        'Y' if closure == 1 else 'N',
-                                                                        'Y' if typed_arrays == 1 else 'N')
-                print("Working on generating '%s'" % out_filename)
-                translate(**args)
-                out_filename = util.abspath_join(BUILD_DIR_ABS, out_filename)
-                print("Copying '%s' -> '%s'" % (orig_outfile, out_filename))
-                shutil.move(orig_outfile, out_filename)
+        for closure in [0, 1]:
+            args = {'O': opt_level,
+                    'closure': closure,
+                    'label_debug': 0}
+            out_filename = 'js.O%d.%s-closure..js' % (opt_level,
+                                                      'Y' if closure == 1 else 'N')
+            print("Working on generating '%s'" % out_filename)
+            translate(**args)
+            out_filename = util.abspath_join(BUILD_DIR_ABS, out_filename)
+            print("Copying '%s' -> '%s'" % (orig_outfile, out_filename))
+            shutil.move(orig_outfile, out_filename)
 
 def main():
     parser = argparse.ArgumentParser(description='Build script for js.js')
@@ -394,7 +391,6 @@ def main():
     translate_parser.add_argument('-O', type=int, help='Specify optimization level (default: %(default)s)', default=0, choices=[0,1,2])
     translate_parser.add_argument('--label-debug', type=int, help='Runs translation with LABEL_DEBUG=1. This prints tracing information when running. (default: %(default)s)', default=0, choices=[0,1])
     translate_parser.add_argument('--closure', type=int, help='Closure compiles the output. (default: %(default)s)', default=0, choices=[0,1])
-    translate_parser.add_argument('--typed-arrays', type=int, help='Turns on typed arrays (default: %(default)s)', default=0, choices=[0,1])
     translate_parser.set_defaults(func=translate)
     
     all_subparsers = [deps_parser, compile_parser, translate_parser]

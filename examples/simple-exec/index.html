@@ -36,6 +36,13 @@ function start_jsjs() {
       InitStandardClasses: function InitStandardClasses(context, globalClass) {
           return _JS_InitStandardClasses(context, globalClass);
       },
+      EvaluateScript: function EvaluateScript(context, global, source, filename, lineno) {
+          var sourcePtr = allocate(intArrayFromString(source), 'i8', ALLOC_STACK);
+          filename = allocate(intArrayFromString(filename ? filename : "undefined"), 'i8', ALLOC_STACK);
+          lineno = lineno ? lineno : 0;
+          var rval = __stackBase__ + 8;
+          return JS_EvaluateScript(context, global, sourcePtr, source.length, filename, lineno, rval);
+      },
    };
    
    // Creates a new runtime with 8MB of memory
@@ -64,47 +71,13 @@ function start_jsjs() {
    // Currently dying here
    JSJS.InitStandardClasses(cx, global);
    
+   var source = "print(42);";
+   ok = JSJS.EvaluateScript(cx, global, source);
+   
    // This is how you do a proper shut down
    JSJS.DestroyContext(cx);
    JSJS.DestroyRuntime(rt);
    JSJS.ShutDown();
-   
-   
-   //------------
-   
-   
-   // New attempt at handling global objects
-   //global = __ZL15NewGlobalObjectP9JSContext15CompartmentKind(cx, 1);
-   //print("global " + global);
-   //var ac = __stackBase__;
-   //__ZN22JSAutoEnterCompartmentC1Ev(ac);
-   //print("ac " + ac);
-   //__ZN22JSAutoEnterCompartment5enterEP9JSContextP8JSObject(ac, cx, global); // check return
-   //_JS_SetGlobalObject(cx, global);
-   
-   
-   /*var filename;
-   var lineno;
-   var rval = __stackBase__ + 8;
-   var ok;
-   var source = "print(42)";
-   var sourcePtr = allocate(intArrayFromString(source), 'i8', ALLOC_STACK);
-   ok = _JS_EvaluateScript(cx, global, sourcePtr, source.length,
-       ((__str2341155)|0), 1, rval);
-   
-   var d = __stackBase__ + 16;
-   if(ok) {
-     ok = _JS_ValueToNumber(cx, rval, d);
-   }
-   print("d " + HEAP[d]);*/
-   
-   /*
-   var args=new Array();
-   args[0] = "-e";
-   args[1] = "print(123456789)";
-   args[1] = "var asdf = 7; switch(asdf) { case 1: print('one'); break; case 7: print('seven'); break; default: print('default'); break; }";
-   Module.callMain(args);
-   */
 
 }
 

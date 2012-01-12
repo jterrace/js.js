@@ -3,7 +3,6 @@
     <script type="text/javascript" src="js.js"></script>
     <script type="text/javascript">
 
-function start_jsjs() {
 
    var JSJS = {
       NewRuntime: function NewRuntime(maxbytes) {
@@ -96,6 +95,7 @@ function start_jsjs() {
    };
 
 
+function start_jsjs() {
    var jsObjs = JSJS.Init();
 
 
@@ -114,7 +114,7 @@ function start_jsjs() {
 
 }
 
-window.onload = start_jsjs;
+<!-- window.onload = start_jsjs; -->
 
     </script>
   </head>
@@ -124,6 +124,25 @@ window.onload = start_jsjs;
     <script type="text/javascript">
       var txt = "Normal javascript";
       document.getElementById("demo").innerHTML=txt;
+      print("Done with that");
+
+      //      var src = "var myt = 'Changed by js.js'; document.getElementById('demo').innerHTML=myt";
+      var src = "40 + 2";
+      var jsObjs = JSJS.Init();
+      var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
+      var d;
+      if (rval) {
+          //Convert the JSVal to a double
+          d = JSJS.ValueToNumber(jsObjs.cx, rval);
+      } else {
+          print("Can't get result because an error happened.")
+      }
+
+      document.getElementById("demo").innerHTML=d;
+
+      // This is how you do a proper shut down
+      JSJS.End(jsObjs);
+
     </script>
   </body>
 </html>

@@ -56,51 +56,61 @@ function start_jsjs() {
           }
           return getValue(rval, 'double');
       },
+      Init: function Init() {
+           // Creates a new runtime with 8MB of memory
+           var rt = JSJS.NewRuntime(8*1024*1024);
+           print("rt " + rt);
+
+           var cx = JSJS.NewContext(rt, 8192);
+           print("cx " + cx);
+
+           // See documentation for explanation -- needed for most scripts
+           var JSOPTION_VAROBJFIX = 1 << 2;
+           JSJS.SetOptions(cx, JSOPTION_VAROBJFIX);
+
+           // Set the version of JavaScript to 1.85
+           var JSVERSION_LATEST = 185;
+           JSJS.SetVersion(cx, JSVERSION_LATEST);
+
+           // Set a function that gets called when an error happens
+           function errorReporter(cx, message, report) {
+               print("ERROR: " + Pointer_stringify(message));
+           }
+           JSJS.SetErrorReporter(cx, errorReporter);
+
+           // This creates the "global object" in the interpreter space.
+           // __global_class is defined by js/shell.cpp to be a nice, sane default
+           var global = JSJS.NewCompartmentAndGlobalObject(cx, _global_class, 0);
+           print("global " + global);
+
+           // Initializes the standard javascript global objects like Array, Date, etc
+           JSJS.InitStandardClasses(cx, global);
+
+           return {rt: rt, cx: cx, glob: global};
+      },
+      End: function End(jsObjs) {
+         JSJS.DestroyContext(jsObjs.cx);
+         JSJS.DestroyRuntime(jsObjs.rt);
+         JSJS.ShutDown();
+      },
    };
 
-   // Creates a new runtime with 8MB of memory
-   var rt = JSJS.NewRuntime(8*1024*1024);
-   print("rt " + rt);
 
-   var cx = JSJS.NewContext(rt, 8192);
-   print("cx " + cx);
+   var jsObjs = JSJS.Init();
 
-   // See documentation for explanation -- needed for most scripts
-   var JSOPTION_VAROBJFIX = 1 << 2;
-   JSJS.SetOptions(cx, JSOPTION_VAROBJFIX);
 
-   // Set the version of JavaScript to 1.85
-   var JSVERSION_LATEST = 185;
-   JSJS.SetVersion(cx, JSVERSION_LATEST);
-
-   // Set a function that gets called when an error happens
-   function errorReporter(cx, message, report) {
-       print("ERROR: " + Pointer_stringify(message));
-   }
-   JSJS.SetErrorReporter(cx, errorReporter);
-
-   // This creates the "global object" in the interpreter space.
-   // __global_class is defined by js/shell.cpp to be a nice, sane default
-   var global = JSJS.NewCompartmentAndGlobalObject(cx, _global_class, 0);
-   print("global " + global);
-
-   // Initializes the standard javascript global objects like Array, Date, etc
-   JSJS.InitStandardClasses(cx, global);
-   
    //Evaluate the script, which returns a JSVal
    var source = "(1 + 1)";
-   var rval = JSJS.EvaluateScript(cx, global, source);
+   var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, source);
    if (rval) {
        //Convert the JSVal to a double
-       print('return value: '  + JSJS.ValueToNumber(cx, rval));
+       print('return value: '  + JSJS.ValueToNumber(jsObjs.cx, rval));
    } else {
        print("Can't get result because an error happened.")
    }
 
    // This is how you do a proper shut down
-   JSJS.DestroyContext(cx);
-   JSJS.DestroyRuntime(rt);
-   JSJS.ShutDown();
+   JSJS.End(jsObjs);
 
 }
 
@@ -111,5 +121,9 @@ window.onload = start_jsjs;
   <body>
     <h1>js.js Simple Execution Demo</h1>
     <p id="demo">Stuff Here.</p>
+    <script type="text/javascript">
+      var txt = "Normal javascript";
+      document.getElementById("demo").innerHTML=txt;
+    </script>
   </body>
 </html>

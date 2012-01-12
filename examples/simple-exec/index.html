@@ -4,7 +4,7 @@
     <script type="text/javascript">
 
 function start_jsjs() {
-    
+
    var JSJS = {
       NewRuntime: function NewRuntime(maxbytes) {
           return _JS_Init(maxbytes);
@@ -37,43 +37,48 @@ function start_jsjs() {
           return _JS_InitStandardClasses(context, globalClass);
       },
       EvaluateScript: function EvaluateScript(context, global, source, filename, lineno) {
+          var __stackBase__  = STACKTOP; STACKTOP += 20; assert(STACKTOP < STACK_MAX, "Ran out of stack");
           var sourcePtr = allocate(intArrayFromString(source), 'i8', ALLOC_STACK);
           filename = allocate(intArrayFromString(filename ? filename : "undefined"), 'i8', ALLOC_STACK);
           lineno = lineno ? lineno : 0;
           var rval = __stackBase__ + 8;
-          return JS_EvaluateScript(context, global, sourcePtr, source.length, filename, lineno, rval);
+          var returnVal = _JS_EvaluateScript(context, global, sourcePtr, source.length, filename, lineno, rval);
+          STACKTOP = __stackBase__;
+          return { ok: returnVal, rval: rval};
+
       },
    };
-   
+
    // Creates a new runtime with 8MB of memory
    var rt = JSJS.NewRuntime(8*1024*1024);
    print("rt " + rt);
-   
+
    var cx = JSJS.NewContext(rt, 8192);
    print("cx " + cx);
-   
+
    // See documentation for explanation -- needed for most scripts
    var JSOPTION_VAROBJFIX = 1 << 2;
    JSJS.SetOptions(cx, JSOPTION_VAROBJFIX);
-   
+
    // Set the version of JavaScript to 1.85
    var JSVERSION_LATEST = 185;
    JSJS.SetVersion(cx, JSVERSION_LATEST);
-   
+
    // This is the default error reporter for shell/js.cpp
    JSJS.SetErrorReporter(cx, 396);
-   
+
    // This creates the "global object" in the interpreter space.
    // __global_class is defined by js/shell.cpp to be a nice, sane default
    var global = JSJS.NewCompartmentAndGlobalObject(cx, _global_class, 0);
    print("global " + global);
-   
+
    // Currently dying here
    JSJS.InitStandardClasses(cx, global);
-   
+
    var source = "print(42);";
-   ok = JSJS.EvaluateScript(cx, global, source);
-   
+   var ok, rval;
+   rval = JSJS.EvaluateScript(cx, global, source);
+
    // This is how you do a proper shut down
    JSJS.DestroyContext(cx);
    JSJS.DestroyRuntime(rt);

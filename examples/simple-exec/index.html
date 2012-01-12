@@ -28,7 +28,8 @@ function start_jsjs() {
           return _JS_SetVersion(context, version);
       },
       SetErrorReporter: function SetErrorReporter(context, errorReporter) {
-          return _JS_SetErrorReporter(context, errorReporter);
+          var funcPosition = FUNCTION_TABLE.push(errorReporter) - 1;
+          return _JS_SetErrorReporter(context, funcPosition);
       },
       NewCompartmentAndGlobalObject: function NewCompartmentAndGlobalObject(context, globalClass, principals) {
           return _JS_NewCompartmentAndGlobalObject(context, globalClass, principals);
@@ -72,8 +73,11 @@ function start_jsjs() {
    var JSVERSION_LATEST = 185;
    JSJS.SetVersion(cx, JSVERSION_LATEST);
 
-   // This is the default error reporter for shell/js.cpp
-   JSJS.SetErrorReporter(cx, 396);
+   // Set a function that gets called when an error happens
+   function errorReporter(cx, message, report) {
+       print("ERROR: " + Pointer_stringify(message));
+   }
+   JSJS.SetErrorReporter(cx, errorReporter);
 
    // This creates the "global object" in the interpreter space.
    // __global_class is defined by js/shell.cpp to be a nice, sane default
@@ -86,8 +90,12 @@ function start_jsjs() {
    //Evaluate the script, which returns a JSVal
    var source = "(1 + 1)";
    var rval = JSJS.EvaluateScript(cx, global, source);
-   //Convert the JSVal to a double
-   print('return value: '  + JSJS.ValueToNumber(cx, rval));
+   if (rval) {
+       //Convert the JSVal to a double
+       print('return value: '  + JSJS.ValueToNumber(cx, rval));
+   } else {
+       print("Can't get result because an error happened.")
+   }
 
    // This is how you do a proper shut down
    JSJS.DestroyContext(cx);

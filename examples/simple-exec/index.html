@@ -37,15 +37,23 @@ function start_jsjs() {
           return _JS_InitStandardClasses(context, globalClass);
       },
       EvaluateScript: function EvaluateScript(context, global, source, filename, lineno) {
-          var __stackBase__  = STACKTOP; STACKTOP += 20; assert(STACKTOP < STACK_MAX, "Ran out of stack");
           var sourcePtr = allocate(intArrayFromString(source), 'i8', ALLOC_STACK);
           filename = allocate(intArrayFromString(filename ? filename : "undefined"), 'i8', ALLOC_STACK);
           lineno = lineno ? lineno : 0;
-          var rval = __stackBase__ + 8;
-          var returnVal = _JS_EvaluateScript(context, global, sourcePtr, source.length, filename, lineno, rval);
-          STACKTOP = __stackBase__;
-          return { ok: returnVal, rval: rval};
-
+          var rval = allocate(8, 'i8', ALLOC_NORMAL);
+          var ok = _JS_EvaluateScript(context, global, sourcePtr, source.length, filename, lineno, rval);
+          if (ok == 0) {
+              return null;
+          }
+          return rval;
+      },
+      ValueToNumber: function ValueToNumber(context, jsval) {
+          var rval = allocate(1, 'double', ALLOC_NORMAL);
+          ok = _JS_ValueToNumber(context, jsval, rval);
+          if (ok == 0) {
+              return null;
+          }
+          return getValue(rval, 'double');
       },
    };
 
@@ -72,12 +80,14 @@ function start_jsjs() {
    var global = JSJS.NewCompartmentAndGlobalObject(cx, _global_class, 0);
    print("global " + global);
 
-   // Currently dying here
+   // Initializes the standard javascript global objects like Array, Date, etc
    JSJS.InitStandardClasses(cx, global);
-
-   var source = "print(42);";
-   var ok, rval;
-   rval = JSJS.EvaluateScript(cx, global, source);
+   
+   //Evaluate the script, which returns a JSVal
+   var source = "(1 + 1)";
+   var rval = JSJS.EvaluateScript(cx, global, source);
+   //Convert the JSVal to a double
+   print('return value: '  + JSJS.ValueToNumber(cx, rval));
 
    // This is how you do a proper shut down
    JSJS.DestroyContext(cx);

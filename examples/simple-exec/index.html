@@ -1,0 +1,119 @@
+<html>
+  <head>
+    <script type="text/javascript" src="js.js"></script>
+    <script type="text/javascript">
+
+function start_jsjs() {
+    
+   var JSJS = {
+      NewRuntime: function NewRuntime(maxbytes) {
+          return _JS_Init(maxbytes);
+      },
+      NewContext: function NewContext(runtime, stackChunkSize) {
+          return _JS_NewContext(runtime, stackChunkSize)
+      },
+      DestroyContext: function DestroyContext(context) {
+          return _JS_DestroyContext(context);
+      },
+      DestroyRuntime: function DestroyRuntime(runtime) {
+          return _JS_Finish(runtime);
+      },
+      ShutDown: function ShutDown() {
+          return _JS_ShutDown();
+      },
+      SetOptions: function SetOptions(context, options) {
+          return _JS_SetOptions(context, options);
+      },
+      SetVersion: function SetVersion(context, version) {
+          return _JS_SetVersion(context, version);
+      },
+      SetErrorReporter: function SetErrorReporter(context, errorReporter) {
+          return _JS_SetErrorReporter(context, errorReporter);
+      },
+      NewCompartmentAndGlobalObject: function NewCompartmentAndGlobalObject(context, globalClass, principals) {
+          return _JS_NewCompartmentAndGlobalObject(context, globalClass, principals);
+      },
+      InitStandardClasses: function InitStandardClasses(context, globalClass) {
+          return _JS_InitStandardClasses(context, globalClass);
+      },
+   };
+   
+   // Creates a new runtime with 8MB of memory
+   var rt = JSJS.NewRuntime(8*1024*1024);
+   print("rt " + rt);
+   
+   var cx = JSJS.NewContext(rt, 8192);
+   print("cx " + cx);
+   
+   // See documentation for explanation -- needed for most scripts
+   var JSOPTION_VAROBJFIX = 1 << 2;
+   JSJS.SetOptions(cx, JSOPTION_VAROBJFIX);
+   
+   // Set the version of JavaScript to 1.85
+   var JSVERSION_LATEST = 185;
+   JSJS.SetVersion(cx, JSVERSION_LATEST);
+   
+   // This is the default error reporter for shell/js.cpp
+   JSJS.SetErrorReporter(cx, 396);
+   
+   // This creates the "global object" in the interpreter space.
+   // __global_class is defined by js/shell.cpp to be a nice, sane default
+   var global = JSJS.NewCompartmentAndGlobalObject(cx, _global_class, 0);
+   print("global " + global);
+   
+   // Currently dying here
+   JSJS.InitStandardClasses(cx, global);
+   
+   // This is how you do a proper shut down
+   JSJS.DestroyContext(cx);
+   JSJS.DestroyRuntime(rt);
+   JSJS.ShutDown();
+   
+   
+   //------------
+   
+   
+   // New attempt at handling global objects
+   //global = __ZL15NewGlobalObjectP9JSContext15CompartmentKind(cx, 1);
+   //print("global " + global);
+   //var ac = __stackBase__;
+   //__ZN22JSAutoEnterCompartmentC1Ev(ac);
+   //print("ac " + ac);
+   //__ZN22JSAutoEnterCompartment5enterEP9JSContextP8JSObject(ac, cx, global); // check return
+   //_JS_SetGlobalObject(cx, global);
+   
+   
+   /*var filename;
+   var lineno;
+   var rval = __stackBase__ + 8;
+   var ok;
+   var source = "print(42)";
+   var sourcePtr = allocate(intArrayFromString(source), 'i8', ALLOC_STACK);
+   ok = _JS_EvaluateScript(cx, global, sourcePtr, source.length,
+       ((__str2341155)|0), 1, rval);
+   
+   var d = __stackBase__ + 16;
+   if(ok) {
+     ok = _JS_ValueToNumber(cx, rval, d);
+   }
+   print("d " + HEAP[d]);*/
+   
+   /*
+   var args=new Array();
+   args[0] = "-e";
+   args[1] = "print(123456789)";
+   args[1] = "var asdf = 7; switch(asdf) { case 1: print('one'); break; case 7: print('seven'); break; default: print('default'); break; }";
+   Module.callMain(args);
+   */
+
+}
+
+window.onload = start_jsjs;
+
+    </script>
+  </head>
+  <body>
+    <h1>js.js Simple Execution Demo</h1>
+    <p id="demo">Stuff Here.</p>
+  </body>
+</html>

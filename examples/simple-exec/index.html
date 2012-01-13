@@ -60,11 +60,6 @@
           var funcPosition = FUNCTION_TABLE.push(func) - 1;
           return _JS_DefineFunction(context, obj, namePtr, funcPosition, nargs, flags);
       },
-      JSVal: {
-          setDouble: function setDouble(jsval, d) {
-              _DOUBLE_TO_JSVAL(jsval, d);
-          },
-      },
       Init: function Init() {
            // Creates a new runtime with 8MB of memory
            var rt = JSJS.NewRuntime(8*1024*1024);
@@ -102,14 +97,57 @@
          JSJS.DestroyRuntime(jsObjs.rt);
          JSJS.ShutDown();
       },
+      wrapFunction: function(params) {
+          return function wrappedNativeFunction(context, nargs, jsval) {
+              var formatStr = "";
+              var allocateLengths = [];
+              var allocateTypes = [];
+              for (i=0; i<params.args.length; i++) {
+                  formatStr += params.args[i].formatStr;
+                  allocateLengths.push(1);
+                  allocateTypes.push(params.args[i].type);
+              }
+              var formatStr = allocate(intArrayFromString(formatStr), 'i8', ALLOC_NORMAL);
+              var outBuf = allocate(allocateLengths, allocateTypes, ALLOC_NORMAL);
+              var variadic = allocate(params.args.length, 'i32');
+              var outBufOffset = outBuf;
+              for (i=0; i<params.args.length; i++) {
+                  setValue(variadic + i * 4, outBufOffset, 'i32');
+                  outBufOffset += params.args[i].size;
+              }
+              var ok = _JS_ConvertArguments(context, params.args.length, jsval + 16, formatStr, variadic);
+              if (!ok) {
+                  return 0;
+              }
+              var returnVals = [];
+              var outBufOffset = outBuf;
+              for (i=0; i<params.args.length; i++) {
+                  returnVals.push(params.args[i].fromPtr(outBufOffset));
+                  outBufOffset += params.args[i].size;
+              }
+              var retVal = params.func.apply(this, returnVals);
+              params.returns.toJSVal(jsval, retVal);
+              return 1;
+          };
+      },
       Types: {
-          primitive: function(type) {
+          primitive: function(type, formatStr, jsValFunc) {
               return new function() {
                   this.size = Runtime.getNativeTypeSize(type);
+                  this.type = type;
+                  if (formatStr) {
+                      this.formatStr = formatStr;
+                  }
+                  this.fromPtr = function(ptr) {
+                      return getValue(ptr, this.type);
+                  };
                   this.toPtr = function(val) {
                       var ptr = allocate(1, type, ALLOC_NORMAL);
                       setValue(ptr, val, type);
                       return ptr;
+                  };
+                  this.toJSVal = function(jsval, val) {
+                      return jsValFunc(jsval, val);
                   };
                   this.setPtr = function(val, ptr) {
                       setValue(ptr, val, type);
@@ -160,9 +198,10 @@
       },
    };
    
-   JSJS.Types.i16 = JSJS.Types.primitive('i16');
-   JSJS.Types.i32 = JSJS.Types.primitive('i32');
-   JSJS.Types['double'] = JSJS.Types.primitive('double');
+   JSJS.Types.bool = JSJS.Types.primitive('i1', 'b', _BOOLEAN_TO_JSVAL);
+   JSJS.Types.i16 = JSJS.Types.primitive('i16', 'c', _INT_TO_JSVAL);
+   JSJS.Types.i32 = JSJS.Types.primitive('i32', 'i', _INT_TO_JSVAL);
+   JSJS.Types['double'] = JSJS.Types.primitive('double', 'd', _DOUBLE_TO_JSVAL);
    JSJS.Types.JSFunctionSpec = JSJS.Types.struct(JSJS.Types.charPtr,
                                                  JSJS.Types.funcPtr,
                                                  JSJS.Types.i16,
@@ -170,29 +209,20 @@
 
 
 function start_jsjs() {
-    var src = "function x() { return Math.abs(32 * -2); } nativeAdd(6, 2); ";
+    var src = "function x() { return Math.abs(32 * -2); } nativeAdd(x(), 2.4); ";
     var jsObjs = JSJS.Init();
-    
-    function nativeAdd(context, nargs, jsval) {
-        console.log("nativeAdd called with " + nargs + " arguments.");
-        var formatStr = allocate(intArrayFromString("dd"), 'i8', ALLOC_NORMAL);
-        var outBuf = allocate([1, 1], ['double', 'double'], ALLOC_NORMAL);
-        var variadic = allocate(2, 'i32');
-        setValue(variadic, outBuf, 'i32');
-        setValue(variadic + 4, outBuf + 8, 'i32');
-        var ok = _JS_ConvertArguments(context, 2, jsval + 16, formatStr, variadic);
-        if (!ok) {
-            return 0;
-        }
-        d1 = getValue(outBuf, 'double');
-        d2 = getValue(outBuf + 8, 'double');
-        console.log("nativeAdd got two arguments to add: " + d1 + " + " + d2);
-        
-        JSJS.JSVal.setDouble(jsval, d1 + d2);
-        return 1;
+
+    //Define a global object called "nativeAdd" that calls nativeAdd function,
+    // taking two doubles as input, returning a double
+    function nativeAdd(d1, d2) {
+        console.log("nativeAdd got params " + d1 + " " + d2);
+        return d1 + d2;
     }
-    //Define a global object called "dummy" that calls "dummyFunc"
-    JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "nativeAdd", nativeAdd, 2, 0);
+    var wrappedNativeFunc = JSJS.wrapFunction({
+        func: nativeAdd,
+        args: [JSJS.Types['double'], JSJS.Types['double']],
+        returns: JSJS.Types['double']});
+    JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "nativeAdd", wrappedNativeFunc, 2, 0);
     
     var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
     

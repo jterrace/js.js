@@ -177,15 +177,18 @@ function start_jsjs() {
         console.log("nativeAdd called with " + nargs + " arguments.");
         var formatStr = allocate(intArrayFromString("dd"), 'i8', ALLOC_NORMAL);
         var outBuf = allocate([1, 1], ['double', 'double'], ALLOC_NORMAL);
-        var ok = _JS_ConvertArguments(context, 2, jsval, formatStr, outBuf);
+        var variadic = allocate(2, 'i32');
+        setValue(variadic, outBuf, 'i32');
+        setValue(variadic + 4, outBuf + 8, 'i32');
+        var ok = _JS_ConvertArguments(context, 2, jsval + 16, formatStr, variadic);
         if (!ok) {
             return 0;
         }
         d1 = getValue(outBuf, 'double');
         d2 = getValue(outBuf + 8, 'double');
-        console.log(d1);
-        console.log(d2);
-        JSJS.JSVal.setDouble(jsval, 3.4);
+        console.log("nativeAdd got two arguments to add: " + d1 + " + " + d2);
+        
+        JSJS.JSVal.setDouble(jsval, d1 + d2);
         return 1;
     }
     //Define a global object called "dummy" that calls "dummyFunc"

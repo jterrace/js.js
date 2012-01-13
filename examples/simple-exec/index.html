@@ -92,6 +92,29 @@
          JSJS.DestroyRuntime(jsObjs.rt);
          JSJS.ShutDown();
       },
+      Types: {
+          JSFunctionSpec: {
+              makePtr: function makePtr(name, func, nargs, flags) {
+                  var data = allocate([1, 1, 1, 1], ['i32', 'i32', 'i16', 'i16'], ALLOC_NORMAL);
+                  var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_STACK);
+                  setValue(data, namePtr, 'i32');
+                  var funcPosition = FUNCTION_TABLE.push(func) - 1;
+                  setValue(data + 4, funcPosition, 'i32');
+                  setValue(data + 8, nargs, 'i16');
+                  setValue(data + 12, flags, 'i16');
+                  return data;
+              },
+              fromPtr: function(ptr) {
+                  var namePtr = getValue(ptr, 'i32');
+                  var name = Pointer_stringify(namePtr);
+                  var func = FUNCTION_TABLE[getValue(ptr + 4, 'i32')]
+                  return { name: name,
+                           func: func,
+                           nargs: getValue(ptr + 8, 'i16'),
+                           flags: getValue(ptr + 12, 'i16') };
+              },
+          }
+      },
    };
 
 
@@ -108,10 +131,9 @@ function start_jsjs() {
    } else {
        print("Can't get result because an error happened.")
    }
-
+   
    // This is how you do a proper shut down
    JSJS.End(jsObjs);
-
 }
 
 <!-- window.onload = start_jsjs; -->
@@ -124,11 +146,22 @@ function start_jsjs() {
     <script type="text/javascript">
       var txt = "Normal javascript";
       document.getElementById("demo").innerHTML=txt;
-      print("Done with that");
 
       //      var src = "var myt = 'Changed by js.js'; document.getElementById('demo').innerHTML=myt";
       var src = "40 + 2";
       var jsObjs = JSJS.Init();
+      
+      /*
+      
+      This is an example of creating JSFunctionSpec
+      
+      function dummyFunc() {
+          
+      }
+      var funcspecptr = JSJS.Types.JSFunctionSpec.makePtr("myfunc", dummyFunc, 0, 0);
+      var typefromptr = JSJS.Types.JSFunctionSpec.fromPtr(funcspecptr);
+      console.log(typefromptr);*/
+      
       var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
       var d;
       if (rval) {

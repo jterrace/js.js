@@ -174,7 +174,12 @@
               setPtr: function(val, ptr) {
                   var strPtr = allocate(intArrayFromString(val), 'i8', ALLOC_NORMAL);
                   setValue(ptr, strPtr, 'i32');
-              }
+              },
+              fromPtr: function(jsval) {
+                return Pointer_stringify(jsval);
+              },
+              formatStr: 'W',
+              type:  'i32'
           },
           struct: function() {
               var typeArgs = arguments;
@@ -235,6 +240,33 @@ function start_jsjs() {
     }
 
     document.getElementById("demo").innerHTML = d;
+
+    var objName = allocate(intArrayFromString("window"), 'i8', ALLOC_NORMAL);
+    jsjsWindowObj = _JS_DefineObject(jsObjs.cx, jsObjs.glob, objName, 0, 0, 0);
+    if(!jsjsWindowObj) {
+      print("Creating object failed");
+    } else {
+      function customAlert(str) {
+        print("In custom alert");
+        print(str.charCodeAt(0));
+        window.alert(str);
+        return 1;
+      }
+
+      var wrappedCustomAlert = JSJS.wrapFunction({
+        func: customAlert,
+        args: [JSJS.Types.charPtr],
+        returns: JSJS.Types['i32']       
+        });
+      
+      JSJS.DefineFunction(jsObjs.cx, jsjsWindowObj, "alert", wrappedCustomAlert, 1,0);      
+
+      var src2 = "window.alert('A')";
+      rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src2);
+    }
+
+    
+
 
     // This is how you do a proper shut down
     JSJS.End(jsObjs);

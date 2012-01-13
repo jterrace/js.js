@@ -60,6 +60,11 @@
           var funcPosition = FUNCTION_TABLE.push(func) - 1;
           return _JS_DefineFunction(context, obj, namePtr, funcPosition, nargs, flags);
       },
+      JSVal: {
+          setDouble: function setDouble(jsval, d) {
+              _DOUBLE_TO_JSVAL(jsval, d);
+          },
+      },
       Init: function Init() {
            // Creates a new runtime with 8MB of memory
            var rt = JSJS.NewRuntime(8*1024*1024);
@@ -157,6 +162,7 @@
    
    JSJS.Types.i16 = JSJS.Types.primitive('i16');
    JSJS.Types.i32 = JSJS.Types.primitive('i32');
+   JSJS.Types['double'] = JSJS.Types.primitive('double');
    JSJS.Types.JSFunctionSpec = JSJS.Types.struct(JSJS.Types.charPtr,
                                                  JSJS.Types.funcPtr,
                                                  JSJS.Types.i16,
@@ -164,15 +170,26 @@
 
 
 function start_jsjs() {
-    var src = "function x() { return Math.abs(32 * -2); } dummy(); x() + 2; ";
+    var src = "function x() { return Math.abs(32 * -2); } nativeAdd(6, 2); ";
     var jsObjs = JSJS.Init();
     
-    function dummyFunc() {
-        console.log("dummy called");
+    function nativeAdd(context, nargs, jsval) {
+        console.log("nativeAdd called with " + nargs + " arguments.");
+        var formatStr = allocate(intArrayFromString("dd"), 'i8', ALLOC_NORMAL);
+        var outBuf = allocate([1, 1], ['double', 'double'], ALLOC_NORMAL);
+        var ok = _JS_ConvertArguments(context, 2, jsval, formatStr, outBuf);
+        if (!ok) {
+            return 0;
+        }
+        d1 = getValue(outBuf, 'double');
+        d2 = getValue(outBuf + 8, 'double');
+        console.log(d1);
+        console.log(d2);
+        JSJS.JSVal.setDouble(jsval, 3.4);
         return 1;
     }
     //Define a global object called "dummy" that calls "dummyFunc"
-    JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "dummy", dummyFunc, 0, 0);
+    JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "nativeAdd", nativeAdd, 2, 0);
     
     var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
     

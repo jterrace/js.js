@@ -1,0 +1,46 @@
+<html>
+<head>
+<title>js.js Browser Emulator</title>
+<script type="text/javascript" src="../../src/js.O0.js"></script>
+<script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+<script type="text/javascript">
+
+    function start_jsjs() {
+        var jsObjs = JSJS.Init();
+    
+        jsjsWindowObj = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", 0, 0, 0);
+        if (!jsjsWindowObj) {
+            console.log("Creating object failed");
+        } else {
+            
+            function customAlert(ptr) {
+              var str = JSJS.CustomStringify(ptr);
+              window.alert(str);
+            }
+            
+            var wrappedCustomAlert = JSJS.wrapFunction({
+              func: customAlert,
+              args: [JSJS.Types.charPtr],
+              returns: null
+              });
+            
+            JSJS.DefineFunction(jsObjs.cx, jsjsWindowObj, "alert", wrappedCustomAlert, 1, 0);      
+            
+            var src = "window.alert('Hello, world!');";
+            rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
+            
+        }
+        
+        // This is how you do a proper shut down
+        JSJS.End(jsObjs);
+    }
+    
+    window.onload = start_jsjs;
+
+    </script>
+</head>
+<body>
+    <h1>js.js Browser Emulator</h1>
+    <p id="demo"></p>
+</body>
+</html>

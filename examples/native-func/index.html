@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <title>js.js Native Function Execution</title>
+    <script type="text/javascript" src="../../src/js.O0.js"></script>
+    <script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+    <script type="text/javascript">
+
+    function start_jsjs() {
+        var src = "nativeAdd(17, 2.4);";
+        var jsObjs = JSJS.Init();
+    
+        //Define a global object called "nativeAdd" that calls nativeAdd function,
+        // taking two doubles as input, returning a double
+        function nativeAdd(d1, d2) {
+            console.log("nativeAdd got params " + d1 + " " + d2);
+            return d1 + d2;
+        }
+        var wrappedNativeFunc = JSJS.wrapFunction({
+            func: nativeAdd,
+            args: [JSJS.Types['double'], JSJS.Types['double']],
+            returns: JSJS.Types['double']});
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "nativeAdd", wrappedNativeFunc, 2, 0);
+        
+        var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
+        
+        var d;
+        if (rval) {
+            //Convert the JSVal to a double
+            d = JSJS.ValueToNumber(jsObjs.cx, rval);
+        } else {
+            d = "Can't get result because an error happened.";
+        }
+    
+        document.getElementById("demo").innerHTML = d;
+        
+        // This is how you do a proper shut down
+        JSJS.End(jsObjs);
+    }
+    
+    window.onload = start_jsjs;
+
+    </script>
+  </head>
+  <body>
+    <h1>js.js Native Function Execution</h1>
+    <h2>If all goes well, the following should be replaced by the result of "nativeAdd(17, 2.4);":</h2>
+    <p id="demo">This will get replaced by the numeric result of the source being evaluated.</p>
+  </body>
+</html>

@@ -64,6 +64,15 @@
           var funcPosition = FUNCTION_TABLE.push(func) - 1;
           return _JS_DefineFunction(context, obj, namePtr, funcPosition, nargs, flags);
       },
+      CustomStringify: function customStringify(ptr) {
+          var str = '';
+          var index, c;
+          for(index = ptr, c = getValue(index, 'i8'); c != 0; index += 2, c = getValue(index, 'i8'))
+          {
+            str = str + String.fromCharCode(c);
+          }
+          return str;
+      },
       Init: function Init() {
            // Creates a new runtime with 8MB of memory
            var rt = JSJS.NewRuntime(8*1024*1024);
@@ -185,7 +194,7 @@
               },
               fromPtr: function(ptr) {
                   var ptrAddr = getValue(ptr, 'i32');
-                  return Pointer_stringify(ptrAddr);
+                  return ptrAddr; //Pointer_stringify(ptrAddr);
               },
               formatStr: 'W',
               type:  'i32'
@@ -248,6 +257,7 @@ function start_jsjs() {
         d = "Can't get result because an error happened.";
     }
 
+
     document.getElementById("demo").innerHTML = d;
     
     jsjsWindowObj = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", 0, 0, 0);
@@ -255,20 +265,21 @@ function start_jsjs() {
         console.log("Creating object failed");
     } else {
         
-		function customAlert(str) {
-		  window.alert(str);
-		}
-		
-		var wrappedCustomAlert = JSJS.wrapFunction({
-		  func: customAlert,
-		  args: [JSJS.Types.charPtr],
-		  returns: null
-		  });
-		
-		JSJS.DefineFunction(jsObjs.cx, jsjsWindowObj, "alert", wrappedCustomAlert, 1, 0);      
-		
-		var src2 = "window.alert('Hello, world!')";
-		rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src2);
+      function customAlert(ptr) {
+        var str = JSJS.CustomStringify(ptr);
+        window.alert(str);
+      }
+      
+      var wrappedCustomAlert = JSJS.wrapFunction({
+        func: customAlert,
+        args: [JSJS.Types.charPtr],
+        returns: null
+        });
+      
+      JSJS.DefineFunction(jsObjs.cx, jsjsWindowObj, "alert", wrappedCustomAlert, 1, 0);      
+      
+      var src2 = "window.alert('Hello, world!')";
+      rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src2);
     }
 
     // This is how you do a proper shut down

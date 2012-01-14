@@ -66,7 +66,8 @@ var JSJS = {
         return _JS_DefineFunction(context, obj, namePtr, funcPosition, nargs,
                 flags);
     },
-    CustomStringify : function customStringify(ptr) {
+    parseUTF16 : function parseUTF16(ptr) {
+        //FIXME: this assumes ascii
         var str = '';
         var index, c;
         for (index = ptr, c = getValue(index, 'i8'); c != 0; index += 2, c = getValue(
@@ -203,7 +204,7 @@ var JSJS = {
             },
             fromPtr : function(ptr) {
                 var ptrAddr = getValue(ptr, 'i32');
-                return ptrAddr; //Pointer_stringify(ptrAddr);
+                return JSJS.parseUTF16(ptrAddr);
             },
             formatStr : 'W',
             type : 'i32'

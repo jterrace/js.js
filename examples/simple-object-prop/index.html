@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>js.js Simple Object Property Test</title>
+<script type="text/javascript" src="../../src/js.O0.js"></script>
+<script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+<script type="text/javascript">
+
+    function start_jsjs() {
+        var jsObjs = JSJS.Init();
+        var map = new Array(); // Be able to map backwards from the JSObject to the real one
+    
+        jsjsFakeDocObj = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "mydoc", 0, 0, 0);
+        map[jsjsFakeDocObj] = "demo";
+
+        if (!jsjsFakeDocObj) {
+            console.log("Creating object failed");
+        } else {
+            // Object has been created, now create the setter 
+            function set_customInnerHtml(cx,obj,idval,strict,str) {
+              console.log("Attempting to set " + str);
+              document.getElementById(map[obj]).innerHTML = str; 
+            };
+            
+            //Wrap the setter and define the property
+            var setterPtr = JSJS.wrapSetter(set_customInnerHtml);
+            var ok=JSJS.DefineProperty(jsObjs.cx, jsjsFakeDocObj, "innerHTML", 0, 0, setterPtr, 0);
+
+            if(!ok) {
+              console.log("JS_DefineProperty failed");
+            } else {
+              console.log("JS_DefineProperty seemed to have succeeded");
+
+              // Everything has gone well, execute script
+              var src = "mydoc.innerHTML = 'It worked';"; 
+              rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
+            }
+
+        }
+        
+        // This is how you do a proper shut down
+        JSJS.End(jsObjs);
+    }
+
+    </script>
+</head>
+<body>
+    <h1>js.js Simple Object Property Test</h1>
+    <p id="demo">This should be replaced by 'It worked!'</p>
+    <script type="text/javascript"> 
+      start_jsjs();
+    </script>
+</body>
+</html>

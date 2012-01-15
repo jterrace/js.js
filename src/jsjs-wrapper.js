@@ -58,6 +58,10 @@ var JSJS = {
         var funcPosition = FUNCTION_TABLE.push(func) - 1;
         return _JS_DefineFunction(context, obj, namePtr, funcPosition, nargs, flags);
     },
+    DefineProperty : function DefineProperty(cx, obj, name, initial, getter, setter, attrs) {
+        var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
+        return _JS_DefineProperty(cx, obj, namePtr, initial, getter, setter, attrs);
+    },
     parseUTF16 : function parseUTF16(ptr) {
         //FIXME: this assumes ascii
         var str = '';
@@ -107,6 +111,59 @@ var JSJS = {
         JSJS.DestroyContext(jsObjs['cx']);
         JSJS.DestroyRuntime(jsObjs['rt']);
         JSJS.ShutDown();
+    },
+    // Give this function a jsval and it will return the real thing back to you
+    identifyConvertValue : function identifyConvertValue(cx, val) {
+        if(_JSVAL_IS_STRING(val)) { // Strings
+           var cp = _JSVAL_TO_STRING(val);
+           cp = _JS_GetStringCharsZ(cx, cp); 
+           cp = JSJS.parseUTF16(cp);
+           return cp;
+         }
+         else if(_JSVAL_IS_NULL(val) || _JSVAL_IS_VOID(val)) { // Undefs
+           return 0;
+         }
+         else if(_JSVAL_IS_INT(val)) { // Ints
+           return (_JSVAL_TO_INT(val));
+         } else if(_JSVAL_IS_DOUBLE(val)) { // Doubles 
+           return (_JSVAL_TO_DOUBLE(val));
+         } else if(_JSVAL_IS_BOOLEAN(val)) { // Boolean
+           return (_JSVAL_TO_BOOLEAN(val)) 
+         } else if(_JSVAL_IS_OBJECT(val)) { // Objects
+           return (_JSVAL_TO_OBJECT(val))
+         }
+         return false;
+    },
+    wrapSetter : function(fnName) {
+      function wrappedSetter(cx, obj, idval, strict, vp) {
+        var idStr = _JSID_TO_STRING(idval);
+        idStr = _JS_GetStringCharsZ(cx, idStr); 
+        idStrReal = JSJS.parseUTF16(idStr);
+
+        var val = JSJS.identifyConvertValue(cx, vp);
+        
+        fnName(cx, obj, idStrReal, strict, val);
+
+        return 1;
+      }
+
+      return FUNCTION_TABLE.push(wrappedSetter) - 1;
+    },   
+    wrapGetter : function(fnName) {
+      function wrappedSetter(cx, obj, idval, vp) {
+        var idStr = _JSID_TO_STRING(idval);
+        idStr = _JS_GetStringCharsZ(cx, idStr); 
+        idStrReal = JSJS.parseUTF16(idStr);
+
+        var val = JSJS.identifyConvertValue(cx, vp);
+        
+        fnName(cx, obj, idStrReal, val);
+
+        return 1;
+      }
+
+      return FUNCTION_TABLE.push(wrappedSetter) - 1;
+      
     },
     wrapFunction : function(params) {
         return function wrappedNativeFunction(context, nargs, jsval) {

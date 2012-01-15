@@ -24,23 +24,18 @@ var JSJS = {
         var funcPosition = FUNCTION_TABLE.push(errorReporter) - 1;
         return _JS_SetErrorReporter(context, funcPosition);
     },
-    NewCompartmentAndGlobalObject : function NewCompartmentAndGlobalObject(
-            context, globalClass, principals) {
-        return _JS_NewCompartmentAndGlobalObject(context, globalClass,
-                principals);
+    NewCompartmentAndGlobalObject : function NewCompartmentAndGlobalObject(context, globalClass, principals) {
+        return _JS_NewCompartmentAndGlobalObject(context, globalClass, principals);
     },
     InitStandardClasses : function InitStandardClasses(context, globalClass) {
         return _JS_InitStandardClasses(context, globalClass);
     },
-    EvaluateScript : function EvaluateScript(context, global, source, filename,
-            lineno) {
+    EvaluateScript : function EvaluateScript(context, global, source, filename, lineno) {
         var sourcePtr = allocate(intArrayFromString(source), 'i8', ALLOC_STACK);
-        filename = allocate(intArrayFromString(filename ? filename
-                : "undefined"), 'i8', ALLOC_STACK);
+        filename = allocate(intArrayFromString(filename ? filename : "undefined"), 'i8', ALLOC_STACK);
         lineno = lineno ? lineno : 0;
         var rval = allocate(8, 'i8', ALLOC_NORMAL);
-        var ok = _JS_EvaluateScript(context, global, sourcePtr, source.length,
-                filename, lineno, rval);
+        var ok = _JS_EvaluateScript(context, global, sourcePtr, source.length, filename, lineno, rval);
         if (ok == 0) {
             return null;
         }
@@ -54,24 +49,20 @@ var JSJS = {
         }
         return getValue(rval, 'double');
     },
-    DefineObject : function DefineObject(context, parent, name, clasp, proto,
-            flags) {
+    DefineObject : function DefineObject(context, parent, name, clasp, proto, flags) {
         var nameStr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
         return _JS_DefineObject(context, parent, nameStr, clasp, proto, flags);
     },
-    DefineFunction : function DefineFunction(context, obj, name, func, nargs,
-            flags) {
+    DefineFunction : function DefineFunction(context, obj, name, func, nargs, flags) {
         var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
         var funcPosition = FUNCTION_TABLE.push(func) - 1;
-        return _JS_DefineFunction(context, obj, namePtr, funcPosition, nargs,
-                flags);
+        return _JS_DefineFunction(context, obj, namePtr, funcPosition, nargs, flags);
     },
     parseUTF16 : function parseUTF16(ptr) {
         //FIXME: this assumes ascii
         var str = '';
         var index, c;
-        for (index = ptr, c = getValue(index, 'i8'); c != 0; index += 2, c = getValue(
-                index, 'i8')) {
+        for (index = ptr, c = getValue(index, 'i8'); c != 0; index += 2, c = getValue(index, 'i8')) {
             str = str + String.fromCharCode(c);
         }
         return str;
@@ -127,8 +118,7 @@ var JSJS = {
                 allocateLengths.push(1);
                 allocateTypes.push(params.args[i].type);
             }
-            var formatStr = allocate(intArrayFromString(formatStr), 'i8',
-                    ALLOC_NORMAL);
+            var formatStr = allocate(intArrayFromString(formatStr), 'i8', ALLOC_NORMAL);
             var outBuf = allocate(allocateLengths, allocateTypes, ALLOC_NORMAL);
             var variadic = allocate(params.args.length, 'i32');
             var outBufOffset = outBuf;
@@ -136,8 +126,7 @@ var JSJS = {
                 setValue(variadic + i * 4, outBufOffset, 'i32');
                 outBufOffset += params.args[i].size;
             }
-            var ok = _JS_ConvertArguments(context, params.args.length,
-                    jsval + 16, formatStr, variadic);
+            var ok = _JS_ConvertArguments(context, params.args.length, jsval + 16, formatStr, variadic);
             if (!ok) {
                 return 0;
             }
@@ -159,81 +148,110 @@ var JSJS = {
     Types : {
         primitive : function(type, formatStr, jsValFunc) {
             return new function() {
-                this.size = Runtime.getNativeTypeSize(type);
-                this.type = type;
+                this['size'] = Runtime.getNativeTypeSize(type);
+                this['type'] = type;
                 if (formatStr) {
-                    this.formatStr = formatStr;
+                    this['formatStr'] = formatStr;
                 }
-                this.fromPtr = function(ptr) {
-                    return getValue(ptr, this.type);
+                this['fromPtr'] = function(ptr) {
+                    return getValue(ptr, type);
                 };
-                this.toPtr = function(val) {
+                this['toPtr'] = function(val) {
                     var ptr = allocate(1, type, ALLOC_NORMAL);
                     setValue(ptr, val, type);
                     return ptr;
                 };
-                this.toJSVal = function(jsval, val) {
+                this['toJSVal'] = function(jsval, val) {
                     return jsValFunc(jsval, val);
                 };
-                this.setPtr = function(val, ptr) {
+                this['setPtr'] = function(val, ptr) {
                     setValue(ptr, val, type);
                 };
             }();
         },
-        funcPtr : {
-            size : 4,
-            toPtr : function(func) {
+        funcPtr : new function() {
+            this['size'] = 4;
+            this['toPtr'] = function(func) {
                 var funcPosition = FUNCTION_TABLE.push(func) - 1;
                 var ptr = allocate(1, 'i32', ALLOC_NORMAL);
                 setValue(ptr, funcPosition, 'i32');
-            },
-            setPtr : function(val, ptr) {
+            };
+            this['setPtr'] = function(val, ptr) {
                 var funcPosition = FUNCTION_TABLE.push(val) - 1;
                 setValue(ptr, funcPosition, 'i32');
-            }
+            };
         },
-        charPtr : {
-            size : 4,
-            toPtr : function(str) {
+        charPtr : new function() {
+            this['size'] = 4;
+            this['toPtr'] = function(str) {
                 return allocate(intArrayFromString(str), 'i8', ALLOC_NORMAL);
-            },
-            setPtr : function(val, ptr) {
-                var strPtr = allocate(intArrayFromString(val), 'i8',
-                        ALLOC_NORMAL);
+            };
+            this['setPtr'] = function(val, ptr) {
+                var strPtr = allocate(intArrayFromString(val), 'i8', ALLOC_NORMAL);
                 setValue(ptr, strPtr, 'i32');
-            },
-            fromPtr : function(ptr) {
+            };
+            this['fromPtr'] = function(ptr) {
                 var ptrAddr = getValue(ptr, 'i32');
                 return JSJS.parseUTF16(ptrAddr);
-            },
-            formatStr : 'W',
-            type : 'i32'
+            };
+            this['formatStr'] = 'W';
+            this['type'] = 'i32';
         },
         struct : function() {
             var typeArgs = arguments;
             return new function() {
-                this.size = 0;
+                var size = 0;
                 for (i = 0; i < typeArgs.length; i++) {
-                    this.size += typeArgs[i].size;
+                    size += typeArgs[i]['size'];
                 }
-                this.toPtr = function() {
+                this['size'] = size;
+                this['toPtr'] = function() {
                     var valArgs = arguments;
-                    var headPtr = allocate(this.size, 'i8', ALLOC_NORMAL);
+                    var headPtr = allocate(size, 'i8', ALLOC_NORMAL);
                     ptr = headPtr;
                     for (i = 0; i < typeArgs.length; i++) {
                         typeArgs[i].setPtr(valArgs[i], ptr);
-                        ptr += typeArgs[i].size;
+                        ptr += typeArgs[i]['size'];
                     }
                     return headPtr;
                 };
             }();
-        },
-    },
+        }
+    }
 };
 
-JSJS.Types.bool = JSJS.Types.primitive('i1', 'b', _BOOLEAN_TO_JSVAL);
-JSJS.Types.i16 = JSJS.Types.primitive('i16', 'c', _INT_TO_JSVAL);
-JSJS.Types.i32 = JSJS.Types.primitive('i32', 'i', _INT_TO_JSVAL);
+/* Exports for closure compiler */
+window['JSJS'] = JSJS;
+
+JSJS['NewRuntime'] = JSJS.NewRuntime;
+JSJS['NewContext'] = JSJS.NewContext;
+JSJS['DestroyContext'] = JSJS.DestroyContext;
+JSJS['DestroyRuntime'] = JSJS.DestroyRuntime;
+JSJS['ShutDown'] = JSJS.ShutDown;
+JSJS['SetOptions'] = JSJS.SetOptions;
+JSJS['SetVersion'] = JSJS.SetVersion;
+JSJS['SetErrorReporter'] = JSJS.SetErrorReporter;
+JSJS['NewCompartmentAndGlobalObject'] = JSJS.NewCompartmentAndGlobalObject;
+JSJS['InitStandardClasses'] = JSJS.InitStandardClasses;
+JSJS['EvaluateScript'] = JSJS.EvaluateScript;
+JSJS['ValueToNumber'] = JSJS.ValueToNumber;
+JSJS['DefineObject'] = JSJS.DefineObject;
+JSJS['DefineFunction'] = JSJS.DefineFunction;
+JSJS['parseUTF16'] = JSJS.parseUTF16;
+JSJS['Init'] = JSJS.Init;
+JSJS['End'] = JSJS.End;
+JSJS['wrapFunction'] = JSJS.wrapFunction;
+
+JSJS['Types'] = JSJS.Types;
+
+JSJS.Types['primitive'] = JSJS.Types.primitive;
+JSJS.Types['funcPtr'] = JSJS.Types.funcPtr;
+JSJS.Types['charPtr'] = JSJS.Types.charPtr;
+JSJS.Types['struct'] = JSJS.Types.struct;
+    
+JSJS.Types['bool'] = JSJS.Types.primitive('i1', 'b', _BOOLEAN_TO_JSVAL);
+JSJS.Types['i16'] = JSJS.Types.primitive('i16', 'c', _INT_TO_JSVAL);
+JSJS.Types['i32'] = JSJS.Types.primitive('i32', 'i', _INT_TO_JSVAL);
 JSJS.Types['double'] = JSJS.Types.primitive('double', 'd', _DOUBLE_TO_JSVAL);
-JSJS.Types.JSFunctionSpec = JSJS.Types.struct(JSJS.Types.charPtr,
-        JSJS.Types.funcPtr, JSJS.Types.i16, JSJS.Types.i16);
+JSJS.Types['JSFunctionSpec'] = JSJS.Types.struct(JSJS.Types['charPtr'],
+        JSJS.Types['funcPtr'], JSJS.Types['i16'], JSJS.Types['i16']);

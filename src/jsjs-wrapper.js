@@ -98,14 +98,14 @@ var JSJS = {
         JSJS.InitStandardClasses(cx, global);
 
         return {
-            rt : rt,
-            cx : cx,
-            glob : global
+            'rt' : rt,
+            'cx' : cx,
+            'glob' : global
         };
     },
     End : function End(jsObjs) {
-        JSJS.DestroyContext(jsObjs.cx);
-        JSJS.DestroyRuntime(jsObjs.rt);
+        JSJS.DestroyContext(jsObjs['cx']);
+        JSJS.DestroyRuntime(jsObjs['rt']);
         JSJS.ShutDown();
     },
     wrapFunction : function(params) {
@@ -113,34 +113,34 @@ var JSJS = {
             var formatStr = "";
             var allocateLengths = [];
             var allocateTypes = [];
-            for (i = 0; i < params.args.length; i++) {
-                formatStr += params.args[i].formatStr;
+            for (i = 0; i < params['args'].length; i++) {
+                formatStr += params['args'][i]['formatStr'];
                 allocateLengths.push(1);
-                allocateTypes.push(params.args[i].type);
+                allocateTypes.push(params['args'][i]['type']);
             }
             var formatStr = allocate(intArrayFromString(formatStr), 'i8', ALLOC_NORMAL);
             var outBuf = allocate(allocateLengths, allocateTypes, ALLOC_NORMAL);
-            var variadic = allocate(params.args.length, 'i32');
+            var variadic = allocate(params['args'].length, 'i32');
             var outBufOffset = outBuf;
-            for (i = 0; i < params.args.length; i++) {
+            for (i = 0; i < params['args'].length; i++) {
                 setValue(variadic + i * 4, outBufOffset, 'i32');
-                outBufOffset += params.args[i].size;
+                outBufOffset += params['args'][i]['size'];
             }
-            var ok = _JS_ConvertArguments(context, params.args.length, jsval + 16, formatStr, variadic);
+            var ok = _JS_ConvertArguments(context, params['args'].length, jsval + 16, formatStr, variadic);
             if (!ok) {
                 return 0;
             }
             var returnVals = [];
             var outBufOffset = outBuf;
-            for (i = 0; i < params.args.length; i++) {
-                returnVals.push(params.args[i].fromPtr(outBufOffset));
-                outBufOffset += params.args[i].size;
+            for (i = 0; i < params['args'].length; i++) {
+                returnVals.push(params['args'][i]['fromPtr'](outBufOffset));
+                outBufOffset += params['args'][i]['size'];
             }
-            var retVal = params.func.apply(this, returnVals);
-            if (params.returns == null) {
+            var retVal = params['func'].apply(this, returnVals);
+            if (params['returns'] == null) {
                 _memcpy(jsval, _JSVAL_VOID, 8);
             } else {
-                params.returns.toJSVal(jsval, retVal);
+                params['returns']['toJSVal'](jsval, retVal);
             }
             return 1;
         };

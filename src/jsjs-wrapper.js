@@ -254,6 +254,12 @@ var JSJS = {
             this['formatStr'] = 'W';
             this['type'] = 'i32';
         },
+        objPtr : new function() {
+            this['size'] = 4;
+            this['toJSVal'] = function(jsval, val) {
+              return _OBJECT_TO_JSVAL(jsval, val)
+            }
+        },
         struct : function() {
             var typeArgs = arguments;
             return new function() {

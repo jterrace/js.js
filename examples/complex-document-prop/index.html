@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>js.js Complex Document Property </title>
-<script type="text/javascript" src="../../src/js.O0.js"></script>
+<script type="text/javascript" src="../../src/js.O1.js"></script>
 <script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
 <script type="text/javascript">
 
@@ -68,7 +68,13 @@
 
 
       rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
-
+      if (rval) {
+          //Convert the JSVal to 'the right thing' 
+          d = JSJS.identifyConvertValue(jsObjs.cx, rval);
+      } else {
+          d = "Can't get result because an error happened.";
+      }
+  
       
       // This is how you do a proper shut down
       JSJS.End(jsObjs);

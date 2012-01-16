@@ -217,11 +217,11 @@ var JSJS = {
       // Custom Setter
       function set_customInnerHtml(cx,obj,idval,strict,str) {
         var docObj = document.getElementById(map[obj]);
-        if(docObj.jsjsLock == 'unlocked') {
+        //if(docObj.jsjsLock == 'unlocked') {
           docObj.innerHTML = str; 
-        } else {
+        /*} else {
           console.log("ALERT: Attempt to access locked object " + docObj.id);
-        }
+        }*/
       };
       
       //Wrap the setter and define the property
@@ -249,7 +249,8 @@ var JSJS = {
         }
 
         // return object
-        var retVal = document.getElementById(str).jsjs;
+        var retVal = _JSVAL_NULL; 
+        if(docObj.jsjsLock == 'unlocked') retVal = docObj.jsjs;
         return retVal;
       }
 

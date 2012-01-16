@@ -19,13 +19,15 @@ from jsjs.filtering import filter_file
 import jsjs.emscripten as emscripten
 
 CURDIR = os.path.abspath(os.path.dirname(__file__))
+ROOTDIR = util.abspath_join(CURDIR, "..")
 BUILD_DIR_ABS = util.abspath_join(CURDIR, conf.BUILD_DIR)
 NEEDED_COMMANDS = [("hg", "Mercurial"),
                    ("git", "Git"),
                    ("svn", "Subversion"),
                    ("make", "Make"),
                    ("autoreconf2.13", "autoreconf 2.13"),
-                   ("scons", "SCons")]
+                   ("scons", "SCons"),
+                   ("java", "Java VM")]
 
 def ensure_needed_commands():
     for command, name in NEEDED_COMMANDS:
@@ -63,8 +65,8 @@ def get_nodejs_dir():
     return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.6.7")
 def get_nodejs_path():
     return util.abspath_join(get_nodejs_dir(), "node")
-def get_jsjs_out():
-    return util.abspath_join(BUILD_DIR_ABS, "./js.js")
+def get_jsjs_out(filename="js.js"):
+    return util.abspath_join(BUILD_DIR_ABS, "./%s" % filename)
 
 def deps(**kwargs):
     print("[START] - deps")
@@ -215,7 +217,7 @@ def compile(**kwargs):
                       "--disable-tracejit",
                       "--disable-methodjit-spew",
                       "--disable-tests",
-                      "--enable-debug",
+                      "--disable-debug",
                       "--disable-optimize"
                       ]
     
@@ -305,6 +307,11 @@ def compile(**kwargs):
         util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', js_combined_ll, js_combined_bc])
         ranprev = True
     
+    libjs_ll = util.abspath_join(BUILD_DIR_ABS, "./libjs.ll")
+    if ranprev or not os.path.isfile(libjs_ll):
+        util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', libjs_ll, libjs_bc])
+        ranprev = True
+    
     if not os.path.isfile(js_combined_ll):
         sys.stderr.write("Failed to build combined LLVM file.\n")
         sys.exit(1)
@@ -322,8 +329,14 @@ def translate(**kwargs):
         sys.stderr.write("Could not find expected LLVM output file at '%s'.\n" % js_combined_ll)
         sys.stderr.write("Did you forget to run ./build.py compile ?\n")
         sys.exit(1)
+        
+    libjs_ll = util.abspath_join(BUILD_DIR_ABS, "./libjs.ll")
+    if not os.path.isfile(libjs_ll):
+        sys.stderr.write("Could not find expected LLVM output file at '%s'.\n" % libjs_ll)
+        sys.stderr.write("Did you forget to run ./build.py compile ?\n")
+        sys.exit(1)
     
-    js_js_path = get_jsjs_out()
+    js_js_path = get_jsjs_out(kwargs['out'])
 
     added_env = dict(EMCC_DEBUG='1')
     
@@ -339,24 +352,23 @@ def translate(**kwargs):
     
     extra_args.extend(['-s', 'DISABLE_EXCEPTION_CATCHING=0'])
     
+    if kwargs['library_only']:
+        extra_args.extend(['-s', 'CLOSURE_ANNOTATIONS=1'])
+        #extra_args.extend(['-s', 'BUILD_AS_SHARED_LIB=1'])
+        extra_args.extend(['-s', 'INCLUDE_FULL_LIBRARY=1'])
+    
     args = [get_emcc_path()]
     args.extend(extra_args)
     args.extend(['-o', js_js_path])
-    args.append(js_combined_ll)
+    args.append(libjs_ll if kwargs['library_only'] else js_combined_ll)
     
     util.run_command(args, added_env=added_env, cwd=BUILD_DIR_ABS)
-    
-    last_lines = ""
-    try:
-        last_lines = util.tail(open(js_js_path, 'r'), window=25)
-    except IOError:
-        pass
-    
-    #if not os.path.isfile(js_js_path) or "error" in last_lines.lower():
-    #    sys.stderr.write("Translation failed. Dumping end of output file:\n\n======\n")
-    #    sys.stderr.write(last_lines)
-    #    sys.stdout.write("======\n\nYou can also find the error in the temporary emscripten directory above.\n")
-    #    sys.exit(1)
+       
+    #FIXME: we could detect bad return value from emscripten, but it
+    # returns 0, even when it fails!
+    if not os.path.isfile(js_js_path):
+        sys.stderr.write("Translation failed.\n")
+        sys.exit(1)
         
     print("js.js at '%s'" % js_js_path)
     
@@ -368,19 +380,41 @@ def build_all(**kwargs):
     translate(**kwargs)
 
 def multiconfig(**kwargs):
-    orig_outfile = get_jsjs_out()
-    for opt_level in [0, 1]:
-        for closure in [0, 1]:
+    jsjswrapper = util.abspath_join(ROOTDIR, "./src/jsjs-wrapper.js")
+    if not os.path.isfile(jsjswrapper):
+        sys.stderr.write("Failed to find wrapper file '%s'." % jsjswrapper)
+        sys.exit(1)
+    
+    for opt_level in [0, 1, 2]:
+        for library_only in [True, False]:
+
+            base = "libjs" if library_only else "js"
+            base_filename = '%s.O%d' % (base, opt_level)
+            uncompressed_filename = base_filename + '.js'
+            
             args = {'O': opt_level,
-                    'closure': closure,
-                    'label_debug': 0}
-            out_filename = 'js.O%d.%s-closure..js' % (opt_level,
-                                                      'Y' if closure == 1 else 'N')
-            print("Working on generating '%s'" % out_filename)
+                    'closure': 0,
+                    'label_debug': 0,
+                    'out': uncompressed_filename,
+                    'library_only': library_only}
+            
+            print("Working on generating '%s'." % uncompressed_filename)
             translate(**args)
-            out_filename = util.abspath_join(BUILD_DIR_ABS, out_filename)
-            print("Copying '%s' -> '%s'" % (orig_outfile, out_filename))
-            shutil.move(orig_outfile, out_filename)
+            
+            compressed_filename = util.abspath_join(BUILD_DIR_ABS, base_filename + ".min.js")
+            uncompressed_filename = util.abspath_join(BUILD_DIR_ABS, uncompressed_filename)
+            
+            closure_path = get_closure_compiler_path()
+            
+            print("Working on closure compiling '%s' into '%s'." % (uncompressed_filename, compressed_filename))
+            
+            closure_args = ["java",
+                            "-jar", closure_path,
+                            "--jscomp_warning", "checkTypes",
+                            "--js_output_file", compressed_filename,
+                            "--js", uncompressed_filename]
+            util.run_command(closure_args)
+            
 
 def main():
     parser = argparse.ArgumentParser(description='Build script for js.js')
@@ -397,6 +431,8 @@ def main():
     translate_parser.add_argument('-O', type=int, help='Specify optimization level (default: %(default)s)', default=0, choices=[0,1,2])
     translate_parser.add_argument('--label-debug', type=int, help='Runs translation with LABEL_DEBUG=1. This prints tracing information when running. (default: %(default)s)', default=0, choices=[0,1])
     translate_parser.add_argument('--closure', type=int, help='Closure compiles the output. (default: %(default)s)', default=0, choices=[0,1])
+    translate_parser.add_argument('--out', type=str, help='Output file for the translated JavaScript. (default: %(default)s)', default='js.js')
+    translate_parser.add_argument('--library-only', action='store_true', default=False, help='Only build libjs, not including the js shell.')
     translate_parser.set_defaults(func=translate)
     
     all_subparsers = [deps_parser, compile_parser, translate_parser]

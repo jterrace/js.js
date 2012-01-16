@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>js.js Simple Security</title>
+<script type="text/javascript" src="../../src/js.O1.js"></script>
+<script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+<script type="text/javascript">
+
+  
+
+  function start_jsjs() {
+      var jsObjs = JSJS.Init();
+      var ok = JSJS.InitDocument(jsObjs, 'locked');
+      JSJS.UnlockDocumentElement(document.getElementById('demo'));
+      
+      // Everything has gone well, execute script
+      var src = "document.getElementById('demo').innerHTML = 'It worked'; \
+        document.getElementById('demo').innerHTML = 'The meaning of life'; \
+        document.getElementById('demo2').innerHTML = 'failure'; \
+        document.getElementById('demo2').innerHTML = 'failure';"; 
+
+      rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
+      if (rval) {
+          //Convert the JSVal to 'the right thing' 
+          d = JSJS.identifyConvertValue(jsObjs.cx, rval);
+      } else {
+          d = "Can't get result because an error happened.";
+      }
+  
+      // This is how you do a proper shut down
+      JSJS.End(jsObjs);
+  }
+
+  </script>
+</head>
+<body>
+    <h1>js.js Simple Security Test</h1>
+    <p id="demo">This should be replaced by 'The meaning of life'</p>
+    <p id="demo2">This should not change</p>
+    <script type="text/javascript"> 
+      start_jsjs();
+    </script>
+</body>
+</html>

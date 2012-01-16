@@ -202,6 +202,75 @@ var JSJS = {
             return 1;
         };
     },
+    // Initialize the document element
+    // jsObjs: The object returned from JSJS.Init()
+    // initLock: the default state of document objects, either 'locked' or 'unlocked'
+    InitDocument : function InitDocument(jsObjs, initLock) {
+      var __DEBUG = false;
+      var map = new Array(); // Be able to map backwards from the JSObject to the real one
+  
+      jsjsDocument = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "document", 0, 0, 0);
+      if (!jsjsDocument) {
+          return "Creating object failed";
+      } 
+
+      // Custom Setter
+      function set_customInnerHtml(cx,obj,idval,strict,str) {
+        var docObj = document.getElementById(map[obj]);
+        if(docObj.jsjsLock == 'unlocked') {
+          docObj.innerHTML = str; 
+        } else {
+          console.log("ALERT: Attempt to access locked object " + docObj.id);
+        }
+      };
+      
+      //Wrap the setter and define the property
+      var setterPtr = JSJS.wrapSetter(set_customInnerHtml);
+
+      function customGetElement(str) {
+        if(__DEBUG) console.log("Calling get element for " + str + " (should see me twice)");
+        var docObj = document.getElementById(str);
+        if(!(docObj.jsjs)) 
+        {
+          if(__DEBUG) console.log("Creating the element for " + str + " (should only see me once)");
+          // create the object
+          var elementObject = JSJS.DefineObject(jsObjs.cx, jsjsDocument, str, 0, 0, 0);
+
+          // create innerHTML property and assign setter 
+          var ok=JSJS.DefineProperty(jsObjs.cx, elementObject, "innerHTML", 0, 0, setterPtr, 0);
+          
+          // map the object
+          docObj.jsjs = elementObject;
+          if(!docObj.jsjsLock) docObj.jsjsLock = initLock;
+          var strptr = allocate(intArrayFromString("innerHTML"), 'i8', ALLOC_NORMAL);
+          var jsval = _INT_TO_JSVAL(42);
+          map[elementObject] = str; 
+          //_JS_SetProperty(jsObjs.cx, elementObject, strptr, jsval);
+        }
+
+        // return object
+        var retVal = document.getElementById(str).jsjs;
+        return retVal;
+      }
+
+      // Wrap customGetElement
+      var wrappedCustomElement = JSJS.wrapFunction({
+        func: customGetElement,
+        args: [JSJS.Types.charPtr],
+        returns: JSJS.Types.objPtr});
+      
+      JSJS.DefineFunction(jsObjs.cx, jsjsDocument, "getElementById", 
+          wrappedCustomElement, 1, 0);      
+      
+      return true;
+    },
+    UnlockDocumentElement : function(docObj) {
+      docObj.jsjsLock = 'unlocked';
+    },
+    LockDocumentElement : function(docObj) {
+      docObj.jsjsLock = 'locked';
+    },
+
     Types : {
         primitive : function(type, formatStr, jsValFunc) {
             return new function() {

@@ -246,6 +246,12 @@ def compile(**kwargs):
     platform_h_path = util.abspath_join(js_src_dir, "./assembler/wtf/Platform.h")
     filter_file(platform_h_path, compile_filters.platform_h_filters)
     
+    jsinterp_cpp_path = util.abspath_join(js_src_dir, "./jsinterp.cpp")
+    filter_file(jsinterp_cpp_path, compile_filters.jsinterp_cpp_filters)
+    
+    pcre_exec_cpp_path = util.abspath_join(js_src_dir, "./yarr/pcre/pcre_exec.cpp")
+    filter_file(pcre_exec_cpp_path, compile_filters.pcre_exec_cpp_filters)
+    
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
     libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)

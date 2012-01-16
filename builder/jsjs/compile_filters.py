@@ -160,3 +160,20 @@ def platform_h_filters(line):
     line = disable_wtf_use_jit_stub_argument_register_define(line)
     line = disable_assembler(line)
     return line
+
+def disable_threaded_interp(line):
+    return line.replace("define JS_THREADED_INTERP 1", "define JS_THREADED_INTERP 0")
+def jsinterp_cpp_filters(line):
+    line = disable_threaded_interp(line)
+    return line
+
+def disable_goto_thing2(line):
+    return line.replace("USE_COMPUTED_GOTO_FOR_MATCH_OPCODE_LOOP", "XXX_STOP_USING_GOTOS_XXX_USE_COMPUTED_GOTO_FOR_MATCH_OPCODE_LOOP")
+def disable_goto_thing1(line):
+    line = line.replace("#define USE_COMPUTED_GOTO_FOR_MATCH_RECURSION", "#undef USE_COMPUTED_GOTO_FOR_MATCH_RECURSION\n#undef USE_COMPUTED_GOTO_FOR_MATCH_OPCODE_LOOP")
+    line = line.replace("USE_COMPUTED_GOTO_FOR_MATCH_RECURSION", "XXX_STOP_USING_GOTOS_XXX_USE_COMPUTED_GOTO_FOR_MATCH_RECURSION")
+    return line
+def pcre_exec_cpp_filters(line):
+    line = disable_goto_thing1(line)
+    line = disable_goto_thing2(line)
+    return line

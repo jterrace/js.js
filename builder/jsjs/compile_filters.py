@@ -131,10 +131,12 @@ def strip_js_likely(line):
     return line.replace("# define JS_LIKELY(x)   (__builtin_expect((x), 1))", "# define JS_LIKELY(x)   (x)")
 def strip_js_unlikely(line):
     return line.replace("# define JS_UNLIKELY(x) (__builtin_expect((x), 0))", "# define JS_UNLIKELY(x) (x)")
-
+def change_debug_inline(line):
+    return line.replace("if defined DEBUG", "if defined JS_INLINE")
 def jstypes_h_filters(line):
     line = strip_js_likely(line)
     line = strip_js_unlikely(line)
+    line = change_debug_inline(line)
     return line
 
 def strip_null_null(line):
@@ -176,4 +178,10 @@ def disable_goto_thing1(line):
 def pcre_exec_cpp_filters(line):
     line = disable_goto_thing1(line)
     line = disable_goto_thing2(line)
+    return line
+
+def change_asbits_junk(line):
+    return line.replace("l.asBits = (((uint64)(uint32)tag) << 32) | payload;", "l.s.tag = tag; l.s.payload.u32 = payload;")
+def jsval_h_filters(line):
+    line = change_asbits_junk(line)
     return line

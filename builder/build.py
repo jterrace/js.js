@@ -254,6 +254,9 @@ def compile(**kwargs):
     pcre_exec_cpp_path = util.abspath_join(js_src_dir, "./yarr/pcre/pcre_exec.cpp")
     filter_file(pcre_exec_cpp_path, compile_filters.pcre_exec_cpp_filters)
     
+    jsval_h_path = util.abspath_join(js_src_dir, "./jsval.h")
+    filter_file(jsval_h_path, compile_filters.jsval_h_filters)
+    
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
     libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
@@ -276,7 +279,7 @@ def compile(**kwargs):
         jstypes_h_path = util.abspath_join(js_src_dir, "./jstypes.h")
         filter_file(jstypes_h_path, compile_filters.jstypes_h_filters)
         
-        util.run_command(["make"], cwd=js_src_dir)
+        util.run_command(["make"], cwd=js_src_dir, added_env={"EMCC_DEBUG": "1"})
     
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
     if not make_success:
@@ -354,7 +357,6 @@ def translate(**kwargs):
     
     if kwargs['library_only']:
         extra_args.extend(['-s', 'CLOSURE_ANNOTATIONS=1'])
-        #extra_args.extend(['-s', 'BUILD_AS_SHARED_LIB=1'])
         extra_args.extend(['-s', 'INCLUDE_FULL_LIBRARY=1'])
     
     args = [get_emcc_path()]
@@ -410,11 +412,13 @@ def multiconfig(**kwargs):
             
             closure_args = ["java",
                             "-jar", closure_path,
-                            "--jscomp_warning", "checkTypes",
                             "--js_output_file", compressed_filename,
                             "--js", uncompressed_filename]
-            util.run_command(closure_args)
+            retcode = util.run_command(closure_args)
             
+            if retcode != 0:
+                sys.stderr.write("Closure compiling failed.")
+                sys.exit(1)            
 
 def main():
     parser = argparse.ArgumentParser(description='Build script for js.js')

@@ -32,7 +32,7 @@
             "string-validate-input"
             ];
     
-    var TIMES_PER_TEST = 2;
+    var TIMES_PER_TEST = 10;
     var currentTest;
     var numTimesRan;
     var curIframe;
@@ -45,7 +45,7 @@
     }
     
     function dispatchTest() {
-        if (tests.length == 0) {
+        if (tests.length == 0 && numTimesRan == TIMES_PER_TEST) {
             console.log("Tests Done.");
             return;
         }

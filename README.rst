@@ -1,9 +1,9 @@
-js.js
-=====
 
 js.js is a JavaScript interpreter in JavaScript. Instead of trying to create an
 interpreter from scratch, SpiderMonkey_ is compiled into LLVM_ and then
 emscripten_ translates the output into JavaScript.
+
+-----
 
 Status
 ------
@@ -11,6 +11,18 @@ The compiled version of js.js is 3MB and only **594KB** after gzip compression.
 Using the Sunspider_ benchmark, the interpreter is about **200 times slower**
 than Spidermonkey's native interpreter with the JIT compiler turned off. More
 optimizations and benchmarks are coming soon.
+
+Example Use
+-----------
+Here is an example of how to use the API::
+
+    var jsObjs = JSJS.Init();
+    var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, "1 + 1");
+    var d = JSJS.ValueToNumber(jsObjs.cx, rval);
+    window.alert(d); //2
+    JSJS.End(jsObjs);
+
+More examples are available in the ``examples`` directory.
 
 Files
 -----

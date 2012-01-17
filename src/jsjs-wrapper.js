@@ -93,12 +93,41 @@ var JSJS = {
         }
         JSJS.SetErrorReporter(cx, errorReporter);
 
-        // This creates the "global object" in the interpreter space.
-        // _GLOBAL_CLASS is copied from the global class used in js/shell.cpp
+        /* This creates the "global object" in the interpreter space.
+         * _GLOBAL_CLASS is copied from the global class used in js/shell.cpp
+         * 
+         * It should in theory be this:
+         * 
+         *   static JSClass global_class = {
+         *       NULL, JSCLASS_GLOBAL_FLAGS,
+         *       JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+         *       JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, JS_FinalizeStub,
+         *       JSCLASS_NO_OPTIONAL_MEMBERS
+         *   };
+         */
+
+        var JSCLASS_GLOBAL_FLAGS = 292613;
         
-        var _GLOBAL_CLASS = allocate([0, 0, 0, 0, 292613, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0,
-                                      10, 0, 0, 0, 12, 0, 0, 0, 2216, 0, 0, 0, 2218, 0, 0, 0,
-                                      68, 0, 0, 0, 2214, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        var PropertyStub = FUNCTION_TABLE.indexOf(_JS_PropertyStub);
+        var StrictPropertyStub = FUNCTION_TABLE.indexOf(_JS_StrictPropertyStub);
+        var EnumerateStub = FUNCTION_TABLE.indexOf(_JS_EnumerateStub);
+        var ResolveStub = FUNCTION_TABLE.indexOf(_JS_ResolveStub);
+        var ConvertStub = FUNCTION_TABLE.indexOf(_JS_ConvertStub);
+        var FinalizeStub = FUNCTION_TABLE.indexOf(_JS_FinalizeStub);
+        
+        var _GLOBAL_CLASS = allocate([0, 0, 0, 0,
+                                      JSCLASS_GLOBAL_FLAGS,
+                                      
+                                      0, 0, 0, PropertyStub,
+                                      0, 0, 0, PropertyStub,
+                                      0, 0, 0, PropertyStub,
+                                      0, 0, 0, StrictPropertyStub,
+                                      0, 0, 0, EnumerateStub,
+                                      0, 0, 0, ResolveStub,
+                                      0, 0, 0, ConvertStub,
+                                      0, 0, 0, FinalizeStub,
+                                      
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -109,9 +138,28 @@ var JSJS = {
                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                      ["*",0,0,0,"i32",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",
-                                       0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                      
+                                      ["*",0,0,0,
+                                       "i32",0,0,0,
+                                       
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       
+                                       "*",0,0,0,"*",0,0,0,
                                        "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
                                        "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
                                        "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,

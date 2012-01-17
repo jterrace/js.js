@@ -1,7 +1,3 @@
-function record(txt) {
-  print("3d Cube: " + txt);
-}
-
 var _sunSpiderStartDate = new Date();
 
 // 3D Cube Rotation

@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>Sunspider Benchmark</title>
+
+<script type="text/javascript" src="../../src/libjs.O2.min.js"></script>
+
+<script type="text/javascript">
+
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+        var regexS = "[\\?&]" + name + "=([^&#]*)";
+        var regex = new RegExp(regexS);
+        var results = regex.exec(window.location.href);
+        if (results == null)
+            return "";
+        else
+            return decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+    
+    function init() {
+        var bench = getParameterByName('bench');
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', bench + '.js?' + Date.now(), false); 
+        xhr.send(null);
+        if (xhr.status != 200) {
+            throw("Failed to get JS for test " + testSrcUrl);
+        }
+        var srcContents = xhr.responseText;
+        
+        console.log("Running benchmark '" + bench + "'. Source size: " + srcContents.length);
+
+        var jsObjs = JSJS.Init();
+        //Define a global object called "record" that calls record function,
+        // taking one double as input, logging the result, and returning the result
+        function record(txt) {
+            window.parent.postMessage(txt, "http://localhost:8000/");
+            return txt;
+        }
+        var wrappedNativeFunc = JSJS.wrapFunction({
+            func: record,
+            args: [JSJS.Types['double']],
+            returns: JSJS.Types['double']});
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "record", wrappedNativeFunc, 2, 0);
+        
+        var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcContents);
+    }
+
+    window.onload = init;
+    
+</script>
+</head>
+<body>
+<h1>Sunspider Benchmark</h1>
+hello world
+</body>
+</html>

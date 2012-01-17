@@ -265,11 +265,11 @@ var JSJS = {
       
       return true;
     },
-    UnlockDocumentElement : function(docObj) {
-      docObj.jsjsLock = 'unlocked';
+    UnlockElement : function(obj) {
+      obj.jsjsLock = 'unlocked';
     },
-    LockDocumentElement : function(docObj) {
-      docObj.jsjsLock = 'locked';
+    LockElement : function(obj) {
+      obj.jsjsLock = 'locked';
     },
 
     Types : {

@@ -1,35 +1,55 @@
 js.js
 =====
 
-js.js is a JavaScript interpreter in JavaScript.
+js.js is a JavaScript interpreter in JavaScript. Instead of trying to create an
+interpreter from scratch, SpiderMonkey_ is compiled into LLVM_ and then
+emscripten_ translates the output into JavaScript.
 
-How?
-----
-Instead of trying to create an interpreter from scratch, SpiderMonkey_
-is compiled into LLVM_ and then emscripten_ translates the output into
-JavaScript.
-
-Why is it 65MB?
----------------
-The current checked-in JavaScript file is 65MB because it is unoptimized. After turning on optimizations and running it through an optimizer (e.g. closure), we expect the library to be around 5-10MB.
-
-How fast is it?
----------------
-It currently takes about 40 seconds to run ``print(1+1)``. Obviously, at that speed, the library is practically useless. Once we turn on emscripten's optimizations (relooper algorithm, LLVM optimizations, Typed Arrays), we expect orders of maginitude increases in performance.
-
-Does it work?
--------------
-We have been modifying the JavaScript output file directly. Basic expressions now work, so the changes are being backported to C++ patches so that we can run the translator with optimizations. Stay tuned.
-
+Status
+------
+The compiled version of js.js is 3MB and only **594KB** after gzip compression.
+Using the Sunspider_ benchmark, the interpreter is about **200 times slower**
+than Spidermonkey's native interpreter with the JIT compiler turned off. More
+optimizations and benchmarks are coming soon.
 
 Files
 -----
+The following files are located in the ``src`` directory.
 
-* changes.rst - contains a list of changes that had to be manually
-  made to get compiled code to run
-* instructions.txt - instructions on how to build SpiderMonkey into
-  LLVM
+=================== =========
+File                Description
+=================== =========
+``js.O0.js``        Command-line JS shell, no optimizations
+``js.O0.min.js``    Command-line JS shell, no optimizations, closure compiled
+``js.O1.js``        Command-line JS shell, O1 optimizations
+``js.O1.min.js``    Command-line JS shell, O1 optimizations, closure compiled
+``js.O2.js``        Command-line JS shell, O2 optimizations
+``js.O2.min.js``    Command-line JS shell, O2 optimizations, closure compiled
+``libjs.O0.js``     JSAPI shared library, no optimizations
+``libjs.O0.min.js`` JSAPI shared library, no optimizations, closure compiled with js.js wrapper
+``libjs.O1.js``     JSAPI shared library, O1 optimizations
+``libjs.O1.min.js`` JSAPI shared library, O1 optimizations, closure compiled with js.js wrapper
+``libjs.O2.js``     JSAPI shared library, O2 optimizations
+``libjs.O2.min.js`` JSAPI shared library, O2 optimizations, closure compiled with js.js wrapper
+``jsjs-wrapper.js`` js.js wrapper API to make using the JSAPI easier
+=================== =========
+
+To run the shell, you want to run one of these::
+
+    js js.O2.min.js -e "print('hello');"
+    node js.O2.min.js -e "print('hello');"
+
+To include the API in your website, include the minified libjs like this::
+
+    <script type="text/javascript" src="libjs.O2.min.js"></script>
+
+Alternatively, you can use the wrapper script directly with a non-minified
+version (useful for debugging and modifications)::
+
+    <script type="text/javascript" src="libjs.O2.js"></script>
+    <script type="text/javascript" src="jsjs-wrapper.js"></script>
 
 .. _SpiderMonkey: https://developer.mozilla.org/en/SpiderMonkey
 .. _emscripten: http://emscripten.org/
 .. _LLVM: http://llvm.org/
+.. _Sunspider: http://www.webkit.org/perf/sunspider/sunspider.html

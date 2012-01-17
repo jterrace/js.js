@@ -414,7 +414,11 @@ def multiconfig(**kwargs):
                             "-jar", closure_path,
                             "--compilation_level", "ADVANCED_OPTIMIZATIONS",
                             "--js_output_file", compressed_filename,
-                            "--js", uncompressed_filename, jsjswrapper]
+                            "--js", uncompressed_filename]
+            
+            if library_only:
+                closure_args.append(jsjswrapper)
+            
             retcode = util.run_command(closure_args)
             
             if retcode != 0:

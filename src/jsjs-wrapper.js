@@ -105,67 +105,58 @@ var JSJS = {
          *       JSCLASS_NO_OPTIONAL_MEMBERS
          *   };
          */
-
-        var JSCLASS_GLOBAL_FLAGS = 292613;
-        
-        var PropertyStub = FUNCTION_TABLE.indexOf(_JS_PropertyStub);
-        var StrictPropertyStub = FUNCTION_TABLE.indexOf(_JS_StrictPropertyStub);
-        var EnumerateStub = FUNCTION_TABLE.indexOf(_JS_EnumerateStub);
-        var ResolveStub = FUNCTION_TABLE.indexOf(_JS_ResolveStub);
-        var ConvertStub = FUNCTION_TABLE.indexOf(_JS_ConvertStub);
-        var FinalizeStub = FUNCTION_TABLE.indexOf(_JS_FinalizeStub);
         
         var _GLOBAL_CLASS = allocate([0, 0, 0, 0,
-                                      JSCLASS_GLOBAL_FLAGS,
-                                      
-                                      0, 0, 0, PropertyStub,
-                                      0, 0, 0, PropertyStub,
-                                      0, 0, 0, PropertyStub,
-                                      0, 0, 0, StrictPropertyStub,
-                                      0, 0, 0, EnumerateStub,
-                                      0, 0, 0, ResolveStub,
-                                      0, 0, 0, ConvertStub,
-                                      0, 0, 0, FinalizeStub,
-                                      
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                      
-                                      ["*",0,0,0,
-                                       "i32",0,0,0,
-                                       
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       "*",0,0,0,
-                                       
-                                       "*",0,0,0,"*",0,0,0,
-                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
+                                 JSJS['JSCLASS_GLOBAL_FLAGS'],
+                                 
+                                 0, 0, 0, JSJS['PropertyStub'],
+                                 0, 0, 0, JSJS['PropertyStub'],
+                                 0, 0, 0, JSJS['PropertyStub'],
+                                 0, 0, 0, JSJS['StrictPropertyStub'],
+                                 0, 0, 0, JSJS['EnumerateStub'],
+                                 0, 0, 0, JSJS['ResolveStub'],
+                                 0, 0, 0, JSJS['ConvertStub'],
+                                 0, 0, 0, JSJS['FinalizeStub'],
+                                 
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                 
+                                 ["*",0,0,0,
+                                  "i32",0,0,0,
+                                  
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  "*",0,0,0,
+                                  
+                                  "*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
         
         var global = JSJS.NewCompartmentAndGlobalObject(cx, _GLOBAL_CLASS, 0);
         print("global " + global);
@@ -446,6 +437,14 @@ JSJS['parseUTF16'] = JSJS.parseUTF16;
 JSJS['Init'] = JSJS.Init;
 JSJS['End'] = JSJS.End;
 JSJS['wrapFunction'] = JSJS.wrapFunction;
+
+JSJS['JSCLASS_GLOBAL_FLAGS'] = 292613;
+JSJS['PropertyStub'] = FUNCTION_TABLE.indexOf(_JS_PropertyStub);
+JSJS['StrictPropertyStub'] = FUNCTION_TABLE.indexOf(_JS_StrictPropertyStub);
+JSJS['EnumerateStub'] = FUNCTION_TABLE.indexOf(_JS_EnumerateStub);
+JSJS['ResolveStub'] = FUNCTION_TABLE.indexOf(_JS_ResolveStub);
+JSJS['ConvertStub'] = FUNCTION_TABLE.indexOf(_JS_ConvertStub);
+JSJS['FinalizeStub'] = FUNCTION_TABLE.indexOf(_JS_FinalizeStub);
 
 JSJS['Types'] = JSJS.Types;
 

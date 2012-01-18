@@ -39,54 +39,17 @@
 
         startTime();
         
-        var c=S.indexOf(Cba),c=P([0,0,0,0,292613,0,0,0,c,0,0,0,c,0,0,0,c,0,0,0,
-                                  S.indexOf(Dba),0,0,0,S.indexOf(Eba),0,0,0,
-                                  S.indexOf(Fba),0,0,0,S.indexOf(Gba),0,0,0,
-                                  S.indexOf(Nba),0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                  0,0,0,0,0],["*",0,0,0,"i32",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",
-                                  0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0],O),
-                                  c=$$.D(cx,c,0);
-        var glob = c;
-        
-        /*var JSCLASS_GLOBAL_FLAGS = 292613;
-        
-        var PropertyStub = FUNCTION_TABLE.indexOf(_JS_PropertyStub);
-        var StrictPropertyStub = FUNCTION_TABLE.indexOf(_JS_StrictPropertyStub);
-        var EnumerateStub = FUNCTION_TABLE.indexOf(_JS_EnumerateStub);
-        var ResolveStub = FUNCTION_TABLE.indexOf(_JS_ResolveStub);
-        var ConvertStub = FUNCTION_TABLE.indexOf(_JS_ConvertStub);
-        var FinalizeStub = FUNCTION_TABLE.indexOf(_JS_FinalizeStub);
-        
-        var _GLOBAL_CLASS = allocate([0, 0, 0, 0,
-                                      JSCLASS_GLOBAL_FLAGS,
+        var _GLOBAL_CLASS = Module.allocate([0, 0, 0, 0,
+                                      JSJS['JSCLASS_GLOBAL_FLAGS'],
                                       
-                                      0, 0, 0, PropertyStub,
-                                      0, 0, 0, PropertyStub,
-                                      0, 0, 0, PropertyStub,
-                                      0, 0, 0, StrictPropertyStub,
-                                      0, 0, 0, EnumerateStub,
-                                      0, 0, 0, ResolveStub,
-                                      0, 0, 0, ConvertStub,
-                                      0, 0, 0, FinalizeStub,
+                                      0, 0, 0, JSJS['PropertyStub'],
+                                      0, 0, 0, JSJS['PropertyStub'],
+                                      0, 0, 0, JSJS['PropertyStub'],
+                                      0, 0, 0, JSJS['StrictPropertyStub'],
+                                      0, 0, 0, JSJS['EnumerateStub'],
+                                      0, 0, 0, JSJS['ResolveStub'],
+                                      0, 0, 0, JSJS['ConvertStub'],
+                                      0, 0, 0, JSJS['FinalizeStub'],
                                       
                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -126,9 +89,9 @@
                                        "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
                                        "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
                                        "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
+                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], Module.ALLOC_STATIC);
         
-        var global = JSJS.NewCompartmentAndGlobalObject(cx, _GLOBAL_CLASS, 0);*/
+        var glob = JSJS.NewCompartmentAndGlobalObject(cx, _GLOBAL_CLASS, 0);
         endTime('global_class');
 
         startTime();

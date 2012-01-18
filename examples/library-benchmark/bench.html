@@ -1,0 +1,174 @@
+<html>
+<head>
+<title>js.js Library Benchmark</title>
+
+<script type="text/javascript">
+    
+    var ttt1;
+    var t2;
+    var allTimes = {};
+    
+    function startTime() {
+        ttt1 = new Date();
+    }
+    function endTime(name) {
+        t2 = new Date();
+        allTimes[name] = t2-ttt1;
+    }
+    
+    function doneScriptLoad() {
+        endTime('script_load');
+        
+        startTime();
+        var rt = JSJS.NewRuntime(1 * 1024 * 1024);
+        endTime('new_runtime');
+
+        startTime();
+        var cx = JSJS.NewContext(rt, 8192);
+        endTime('new_context');
+
+        startTime();
+        var JSOPTION_VAROBJFIX = 1 << 2;
+        JSJS.SetOptions(cx, JSOPTION_VAROBJFIX);
+        endTime('set_options');
+        
+        startTime();
+        var JSVERSION_LATEST = 185;
+        JSJS.SetVersion(cx, JSVERSION_LATEST);
+        endTime('set_version');
+
+        startTime();
+        
+        var c=S.indexOf(Cba),c=P([0,0,0,0,292613,0,0,0,c,0,0,0,c,0,0,0,c,0,0,0,
+                                  S.indexOf(Dba),0,0,0,S.indexOf(Eba),0,0,0,
+                                  S.indexOf(Fba),0,0,0,S.indexOf(Gba),0,0,0,
+                                  S.indexOf(Nba),0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0],["*",0,0,0,"i32",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",
+                                  0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                  "*",0,0,0],O),
+                                  c=$$.D(cx,c,0);
+        var glob = c;
+        
+        /*var JSCLASS_GLOBAL_FLAGS = 292613;
+        
+        var PropertyStub = FUNCTION_TABLE.indexOf(_JS_PropertyStub);
+        var StrictPropertyStub = FUNCTION_TABLE.indexOf(_JS_StrictPropertyStub);
+        var EnumerateStub = FUNCTION_TABLE.indexOf(_JS_EnumerateStub);
+        var ResolveStub = FUNCTION_TABLE.indexOf(_JS_ResolveStub);
+        var ConvertStub = FUNCTION_TABLE.indexOf(_JS_ConvertStub);
+        var FinalizeStub = FUNCTION_TABLE.indexOf(_JS_FinalizeStub);
+        
+        var _GLOBAL_CLASS = allocate([0, 0, 0, 0,
+                                      JSCLASS_GLOBAL_FLAGS,
+                                      
+                                      0, 0, 0, PropertyStub,
+                                      0, 0, 0, PropertyStub,
+                                      0, 0, 0, PropertyStub,
+                                      0, 0, 0, StrictPropertyStub,
+                                      0, 0, 0, EnumerateStub,
+                                      0, 0, 0, ResolveStub,
+                                      0, 0, 0, ConvertStub,
+                                      0, 0, 0, FinalizeStub,
+                                      
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                      
+                                      ["*",0,0,0,
+                                       "i32",0,0,0,
+                                       
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       "*",0,0,0,
+                                       
+                                       "*",0,0,0,"*",0,0,0,
+                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                                       "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
+        
+        var global = JSJS.NewCompartmentAndGlobalObject(cx, _GLOBAL_CLASS, 0);*/
+        endTime('global_class');
+
+        startTime();
+        JSJS.InitStandardClasses(cx, glob);
+        endTime('standard_classes');
+        
+        startTime();
+        var rval = JSJS.EvaluateScript(cx, glob, "1+1");
+        endTime('eval_add');
+        
+        startTime();
+        JSJS.DestroyContext(cx);
+        endTime('destroy_context');
+        
+        startTime();
+        JSJS.DestroyRuntime(rt);
+        endTime('destroy_runtime');
+        
+        startTime();
+        JSJS.ShutDown();
+        endTime('shutdown');
+        
+        window.parent.postMessage(allTimes, "http://localhost:8000/");
+    }
+    
+    function init() {
+        startTime();
+        var element1 = document.createElement("script");
+        element1.src = "../../src/libjs.O2.min.js";
+        element1.type="text/javascript";
+        element1.onload = doneScriptLoad;
+        document.getElementsByTagName("head")[0].appendChild(element1);
+    }
+
+    window.onload = init;
+    
+</script>
+</head>
+<body>
+<h1>Sunspider Benchmark</h1>
+hello world
+</body>
+</html>

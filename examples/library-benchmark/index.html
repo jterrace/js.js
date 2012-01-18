@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>Benchmarking Library</title>
+<script type="text/javascript">
+
+    var TIMES_PER_TEST = 10;
+    var numTimesRan = 0;
+    var curIframe;
+    var pResults;
+    
+    function dispatchTest() {
+        if (numTimesRan == TIMES_PER_TEST) {
+            console.log("Tests Done.");
+            return;
+        }
+        
+        if (curIframe) {
+            document.body.removeChild(curIframe);
+        }
+        
+        console.log("Need to run test " + (TIMES_PER_TEST - numTimesRan) + " more times.");
+        
+        curIframe = document.createElement('iframe');
+        curIframe.src = "bench.html?dummy=" + Date.now(); 
+        document.body.appendChild(curIframe);
+    }
+    
+    function receiveResult(e) {
+        for (x in e.data) {
+            y = e.data[x];
+            pResults.innerHTML = pResults.innerHTML + " " + x + " " + y;
+        }
+        pResults.innerHTML = pResults.innerHTML + "<br>";
+        numTimesRan++;
+        dispatchTest();
+    }
+    
+    function init() {
+        var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+        var eventer = window[eventMethod];
+        var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+        eventer(messageEvent, receiveResult, false);
+        
+        pResults = document.getElementById('results');
+        curIframe = null;
+        dispatchTest();
+    }
+    
+    window.onload = init;
+    
+</script>
+</head>
+<body>
+	<h1>Benchmarking js.js</h1>
+	<p id="results"></p>
+</body>
+</html>

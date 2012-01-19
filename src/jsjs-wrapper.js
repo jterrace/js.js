@@ -256,7 +256,7 @@ var JSJS = {
             if (params['returns'] == null) {
                 _memcpy(jsval, _JSVAL_VOID, 8);
             } else {
-                params['returns']['toJSVal'](jsval, retVal);
+                params['returns']['toJSVal'](jsval, retVal, context);
             }
             return 1;
         };
@@ -351,9 +351,9 @@ var JSJS = {
           return "Creating object failed";
       } 
 
+      // Create the top object and set as a property of window 
       if(initLock == 'unlocked' || window.top == 'unlocked') 
       {
-        // Create the top object and set as a property of window 
         var topObj = JSJS.DefineObject(jsObjs.cx, jsjsWindow, "top", 0, 0, 0);
 
         // Custom Setter for top
@@ -364,6 +364,35 @@ var JSJS = {
 
         JSJS.DefineProperty(jsObjs.cx, topObj, "location", 0, 0, setterPtr, 0);
       }
+      // else don't even create top and they can't touch it
+    
+      // Create window.alert
+      function customAlert(str) {
+        window.alert(str);
+      }
+            
+      var wrappedCustomAlert = JSJS.wrapFunction({
+        func: customAlert,
+        args: [JSJS.Types.charPtr],
+        returns: null
+        });
+      
+      JSJS.DefineFunction(jsObjs.cx, jsjsWindow, "alert", wrappedCustomAlert, 1, 0);      
+
+       // Create window.prompt
+      function customPrompt(prom, defText) {
+        var ret = window.prompt(prom,defText);
+        console.log(Object.prototype.toString.call(ret));
+        return ret;
+      }
+            
+      var wrappedCustomPrompt= JSJS.wrapFunction({
+        func: customPrompt,
+        args: [JSJS.Types.charPtr, JSJS.Types.charPtr],
+        returns: JSJS.Types.charPtr 
+        });
+      
+      JSJS.DefineFunction(jsObjs.cx, jsjsWindow, "prompt", wrappedCustomPrompt, 2, 0);
 
       return true;
     },
@@ -385,7 +414,6 @@ var JSJS = {
     LockElement : function(obj) {
       JSJS.SetLock(obj, 'locked');
     },
-
     Types : {
         primitive : function(type, formatStr, jsValFunc) {
             return new function() {
@@ -434,6 +462,11 @@ var JSJS = {
             this['fromPtr'] = function(ptr) {
                 var ptrAddr = getValue(ptr, 'i32');
                 return JSJS.parseUTF16(ptrAddr);
+            };
+            this['toJSVal'] = function(jsval, val, cx) {
+                var charStar = allocate(intArrayFromString(val), 'i8', ALLOC_NORMAL);
+                var JSStringStar = _JS_NewStringCopyZ(cx, charStar);
+                return _STRING_TO_JSVAL(jsval, JSStringStar);
             };
             this['formatStr'] = 'W';
             this['type'] = 'i32';

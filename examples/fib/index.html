@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <title>js.js Fib demo</title>
+    <script type="text/javascript" src="../../src/libjs.O2.js"></script>
+    <script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+    <script type="text/javascript" src="fib.js"></script>
+    <script type="text/javascript"> 
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'fib.js?' + Date.now(), false); 
+      xhr.send(null);
+      if (xhr.status != 200) {
+        throw("Failed to get JS for test " + testSrcUrl);
+      }
+      var src = xhr.responseText;
+      var jsObjs = JSJS.Init();
+      JSJS.InitDocument(jsObjs, 'unlocked');
+      JSJS.InitWindow(jsObjs, 'unlocked');
+   	
+      function nativeFib(fld) {
+        fib(fld);
+	    }
+
+      function jsjsFib(fld) {
+        var finalSrc = src + "; fib('" + fld + "');"
+        var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, finalSrc);
+	    }
+
+    </script>
+
+  </head>
+  <body>
+    <h1> js.js Fib Demo</h1>
+    <form>
+      <input type="button" value="Native Fib" onclick="nativeFib('result')" >
+      <input type="button" value="js.js Fib" onclick="jsjsFib('jsresult')" >
+    </form>
+    <label>Native result:</label><div id="result"></div>
+    <p></p>
+    jsjs result<div id="jsresult"></div>
+  </body>
+</html>

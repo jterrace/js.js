@@ -74,10 +74,7 @@ var JSJS = {
     Init : function Init() {
         // Creates a new runtime with 8MB of memory
         var rt = JSJS.NewRuntime(8 * 1024 * 1024);
-        print("rt " + rt);
-
         var cx = JSJS.NewContext(rt, 8192);
-        print("cx " + cx);
 
         // See documentation for explanation -- needed for most scripts
         var JSOPTION_VAROBJFIX = 1 << 2;
@@ -159,11 +156,9 @@ var JSJS = {
                                   "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
         
         var global = JSJS.NewCompartmentAndGlobalObject(cx, _GLOBAL_CLASS, 0);
-        print("global " + global);
 
         // Initializes the standard javascript global objects like Array, Date, etc
         JSJS.InitStandardClasses(cx, global);
-      
 
         return {
             'rt' : rt,
@@ -278,14 +273,28 @@ var JSJS = {
           return "Creating object failed";
       } 
 
+      // Cookie stuff, the thrower should probably be pulled out as a class variable
+      // so that all locked properties can use it
+      function thrower(cx,obj,idval,strict,str) {
+        throw idval + " is locked, not allowed to access.";        
+      }
+      var tsn = JSJS.wrapSetter(thrower);
+
+      var cookieLock;
+      // Create the cookie property
+      if(document.cookieObj) cookieLock = document.cookieObj.jsjsLock;
+      else cookieLock = initLock;
+
+      if(cookieLock = 'locked') {
+        JSJS.DefineProperty(jsObjs.cx, jsjsDocument, "cookie", 0, tsn, tsn, 0);
+      } else {
+        // TODO add code to allow cookie to be accessed        
+      }
+
       // Custom Setter
       function set_customInnerHtml(cx,obj,idval,strict,str) {
         var docObj = document.getElementById(docmap[obj]);
-        //if(docObj.jsjsLock == 'unlocked') {
           docObj.innerHTML = str; 
-        /*} else {
-          console.log("ALERT: Attempt to access locked object " + docObj.id);
-        }*/
       };
       
       //Wrap the setter and define the property
@@ -313,7 +322,7 @@ var JSJS = {
         }
 
         // return object
-        var retVal = _JSVAL_NULL; 
+        var retVal = 0; 
         if(docObj.jsjsLock == 'unlocked') retVal = docObj.jsjs;
         return retVal;
       }
@@ -327,6 +336,7 @@ var JSJS = {
       JSJS.DefineFunction(jsObjs.cx, jsjsDocument, "getElementById", 
           wrappedCustomElement, 1, 0);      
       
+      if(__DEBUG) console.log("    Document has been initialized");
       return true;
     },
     // Initialize the window element
@@ -357,13 +367,23 @@ var JSJS = {
 
       return true;
     },
+    SetLock : function(obj, lck) {
+      if(obj instanceof Object) {
+        console.log("Changing lock status of object");
+        obj.jsjsLock = lck;
+      } else if(obj.constructor === String) {
+        console.log("Changing lock status of string");
+        var str = obj + "Obj = new Object; " + obj + "Obj.jsjsLock = " + lck;
+        console.log(str);
+        eval(str);
+      }
 
-
+    },
     UnlockElement : function(obj) {
-      obj.jsjsLock = 'unlocked';
+      JSJS.SetLock(obj, 'unlocked');
     },
     LockElement : function(obj) {
-      obj.jsjsLock = 'locked';
+      JSJS.SetLock(obj, 'locked');
     },
 
     Types : {
@@ -464,12 +484,19 @@ JSJS['EvaluateScript'] = JSJS.EvaluateScript;
 JSJS['ValueToNumber'] = JSJS.ValueToNumber;
 JSJS['DefineObject'] = JSJS.DefineObject;
 JSJS['DefineFunction'] = JSJS.DefineFunction;
+JSJS['DefineProperty'] = JSJS.DefineProperty;
 JSJS['parseUTF16'] = JSJS.parseUTF16;
 JSJS['Init'] = JSJS.Init;
 JSJS['End'] = JSJS.End;
+JSJS['identifyConvertValue'] = JSJS.identifyConvertValue;
 JSJS['wrapFunction'] = JSJS.wrapFunction;
+JSJS['wrapGetter'] = JSJS.wrapGetter;
+JSJS['wrapSetter'] = JSJS.wrapSetter;
 JSJS['InitDocument'] = JSJS.InitDocument;
 JSJS['InitWindow'] = JSJS.InitWindow;
+JSJS['SetLock'] = JSJS.SetLock;
+JSJS['UnlockElement'] = JSJS.UnlockElement;
+JSJS['LockElement'] = JSJS.LockElement;
 
 JSJS['JSCLASS_GLOBAL_FLAGS'] = 292613;
 JSJS['PropertyStub'] = FUNCTION_TABLE.indexOf(_JS_PropertyStub);

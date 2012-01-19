@@ -1,11 +1,11 @@
 <html>
 <head>
 <title>js.js Simple Security</title>
-<script type="text/javascript" src="../../src/js.O1.js"></script>
+<script type="text/javascript" src="../../src/libjs.O2.js"></script>
 <script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
 <script type="text/javascript">
 
- var scriptSrc = "document.getElementById('demo').innerHTML = 'It worked'; \
+var scriptSrc = "document.getElementById('demo').innerHTML = 'It worked'; \
   document.getElementById('demo').innerHTML = 'The meaning of life'; \
   document.getElementById('demo2').innerHTML = 'failure'; \
   document.getElementById('demo2').innerHTML = 'failure';"; 
@@ -28,16 +28,19 @@
       JSJS.End(jsObjs);
   }
 
+  function unprotected() { eval(scriptSrc); };
+
   </script>
 </head>
 <body>
     <h1>js.js Simple Security Test</h1>
+    <form>
+      <input type="button" value="Protected Modify Text" onclick="start_jsjs()" >
+      <input type="button" value="Native Modify Text" onclick="unprotected()" >
+    </form>
+
     <p id="demo">This should be replaced by 'The meaning of life'</p>
     <p id="demo2">This should not change, 
     and you should see an error in console</p>
-    <script type="text/javascript"> 
-      //document.getElementById('fake').innerHTML = "some bs";
-      start_jsjs();
-    </script>
 </body>
 </html>

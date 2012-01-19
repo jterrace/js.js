@@ -163,6 +163,7 @@ var JSJS = {
 
         // Initializes the standard javascript global objects like Array, Date, etc
         JSJS.InitStandardClasses(cx, global);
+      
 
         return {
             'rt' : rt,
@@ -270,7 +271,7 @@ var JSJS = {
     // initLock: the default state of document objects, either 'locked' or 'unlocked'
     InitDocument : function InitDocument(jsObjs, initLock) {
       var __DEBUG = false;
-      var map = new Array(); // Be able to map backwards from the JSObject to the real one
+      var docmap = new Array(); // Be able to map backwards from JSObjects to their native counterparts 
   
       jsjsDocument = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "document", 0, 0, 0);
       if (!jsjsDocument) {
@@ -279,7 +280,7 @@ var JSJS = {
 
       // Custom Setter
       function set_customInnerHtml(cx,obj,idval,strict,str) {
-        var docObj = document.getElementById(map[obj]);
+        var docObj = document.getElementById(docmap[obj]);
         //if(docObj.jsjsLock == 'unlocked') {
           docObj.innerHTML = str; 
         /*} else {
@@ -307,7 +308,7 @@ var JSJS = {
           if(!docObj.jsjsLock) docObj.jsjsLock = initLock;
           var strptr = allocate(intArrayFromString("innerHTML"), 'i8', ALLOC_NORMAL);
           var jsval = _INT_TO_JSVAL(42);
-          map[elementObject] = str; 
+          docmap[elementObject] = str; 
           //_JS_SetProperty(jsObjs.cx, elementObject, strptr, jsval);
         }
 
@@ -328,6 +329,36 @@ var JSJS = {
       
       return true;
     },
+    // Initialize the window element
+    // jsObjs: The object returned from JSJS.Init()
+    // initLock: the default state of document objects, either 'locked' or 'unlocked'
+    InitWindow: function InitWindow(jsObjs, initLock) {
+      var __DEBUG = false;
+  
+      // Create the window object
+      jsjsWindow= JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", 0, 0, 0);
+      if (!jsjsWindow) {
+          return "Creating object failed";
+      } 
+
+      if(initLock == 'unlocked' || window.top == 'unlocked') 
+      {
+        // Create the top object and set as a property of window 
+        var topObj = JSJS.DefineObject(jsObjs.cx, jsjsWindow, "top", 0, 0, 0);
+
+        // Custom Setter for top
+        function set_location(cx,obj,idval,strict,str) {
+            window.top.location = str; 
+        };
+        var setterPtr = JSJS.wrapSetter(set_location);
+
+        JSJS.DefineProperty(jsObjs.cx, topObj, "location", 0, 0, setterPtr, 0);
+      }
+
+      return true;
+    },
+
+
     UnlockElement : function(obj) {
       obj.jsjsLock = 'unlocked';
     },
@@ -437,6 +468,8 @@ JSJS['parseUTF16'] = JSJS.parseUTF16;
 JSJS['Init'] = JSJS.Init;
 JSJS['End'] = JSJS.End;
 JSJS['wrapFunction'] = JSJS.wrapFunction;
+JSJS['InitDocument'] = JSJS.InitDocument;
+JSJS['InitWindow'] = JSJS.InitWindow;
 
 JSJS['JSCLASS_GLOBAL_FLAGS'] = 292613;
 JSJS['PropertyStub'] = FUNCTION_TABLE.indexOf(_JS_PropertyStub);
@@ -458,4 +491,4 @@ JSJS.Types['i16'] = JSJS.Types.primitive('i16', 'c', _INT_TO_JSVAL);
 JSJS.Types['i32'] = JSJS.Types.primitive('i32', 'i', _INT_TO_JSVAL);
 JSJS.Types['double'] = JSJS.Types.primitive('double', 'd', _DOUBLE_TO_JSVAL);
 JSJS.Types['JSFunctionSpec'] = JSJS.Types.struct(JSJS.Types['charPtr'],
-        JSJS.Types['funcPtr'], JSJS.Types['i16'], JSJS.Types['i16']);
+JSJS.Types['funcPtr'], JSJS.Types['i16'], JSJS.Types['i16']);

@@ -86,7 +86,7 @@ var JSJS = {
 
         // Set a function that gets called when an error happens
         function errorReporter(cx, message, report) {
-            print("ERROR: " + Pointer_stringify(message));
+            console.log("js.js Script Error (line: " + getValue(report + 4, 'i32') + "): " + Pointer_stringify(message));
         }
         JSJS.SetErrorReporter(cx, errorReporter);
 
@@ -208,21 +208,17 @@ var JSJS = {
 
       return FUNCTION_TABLE.push(wrappedSetter) - 1;
     },   
-    wrapGetter : function(fnName) {
-      function wrappedSetter(cx, obj, idval, vp) {
+    wrapGetter : function(jsFunc, retType) {
+      function wrappedGetter(cx, obj, idval, vp) {
         var idStr = _JSID_TO_STRING(idval);
         idStr = _JS_GetStringCharsZ(cx, idStr); 
         idStrReal = JSJS.parseUTF16(idStr);
-
-        var val = JSJS.identifyConvertValue(cx, vp);
-        
-        fnName(cx, obj, idStrReal, val);
-
+        var ret = jsFunc(idStrReal);
+        retType['toJSVal'](vp, ret, cx);
         return 1;
       }
 
-      return FUNCTION_TABLE.push(wrappedSetter) - 1;
-      
+      return FUNCTION_TABLE.push(wrappedGetter) - 1;
     },
     wrapFunction : function(params) {
         return function wrappedNativeFunction(context, nargs, jsval) {

@@ -185,3 +185,34 @@ def change_asbits_junk(line):
 def jsval_h_filters(line):
     line = change_asbits_junk(line)
     return line
+
+def change_case1(line):
+    return line.replace("# define END_CASE_LEN1      goto advance_pc_by_one;", "# define END_CASE_LEN1      len = 1; break;")
+def change_case2(line):
+    return line.replace("# define END_CASE_LEN2      len = 2; goto advance_pc;", "# define END_CASE_LEN2      len = 2; break;")
+def change_case3(line):
+    return line.replace("# define END_CASE_LEN3      len = 3; goto advance_pc;", "# define END_CASE_LEN3      len = 3; break;")
+def change_case4(line):
+    return line.replace("# define END_CASE_LEN4      len = 4; goto advance_pc;", "# define END_CASE_LEN4      len = 4; break;")
+def change_case5(line):
+    return line.replace("# define END_CASE_LEN5      len = 5; goto advance_pc;", "# define END_CASE_LEN5      len = 5; break;")
+def change_case_varlen(line):
+    return line.replace("# define END_VARLEN_CASE    goto advance_pc;", "# define END_VARLEN_CASE    break;")
+def change_case_empty(line):
+    return line.replace("# define END_EMPTY_CASES    goto advance_pc_by_one;", "# define END_EMPTY_CASES    len = 1; break;")
+def remove_advance_one_label(line):
+    line = line.replace("advance_pc_by_one:", "")
+    line = line.replace("JS_ASSERT(js_CodeSpec[op].length == 1);", "")
+    if line.strip() == "len = 1;":
+        line = ""
+    return line
+def jsinterp_cpp_filters(line):
+    line = remove_advance_one_label(line)
+    line = change_case1(line)
+    line = change_case2(line)
+    line = change_case3(line)
+    line = change_case4(line)
+    line = change_case5(line)
+    line = change_case_varlen(line)
+    line = change_case_empty(line)
+    return line

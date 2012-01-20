@@ -257,6 +257,9 @@ def compile(**kwargs):
     jsval_h_path = util.abspath_join(js_src_dir, "./jsval.h")
     filter_file(jsval_h_path, compile_filters.jsval_h_filters)
     
+    jsinterp_cpp_path = util.abspath_join(js_src_dir, "./jsinterp.cpp")
+    filter_file(jsinterp_cpp_path, compile_filters.jsinterp_cpp_filters)
+    
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
     libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
     make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)

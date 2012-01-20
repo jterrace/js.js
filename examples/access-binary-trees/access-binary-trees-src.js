@@ -1,3 +1,4 @@
+function abt() {
 function record(txt) {
   print("access-binary-trees " + txt);
 }
@@ -59,3 +60,4 @@ for ( var n = 4; n <= 7; n += 1 ) {
 var _sunSpiderInterval = new Date() - _sunSpiderStartDate;
 
 record(_sunSpiderInterval);
+}

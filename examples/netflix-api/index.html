@@ -1,0 +1,76 @@
+<html>
+<head>
+<title>js.js Facebook Like Button</title>
+
+<script type="text/javascript" src="../../src/libjs.O2.min.new.js"></script>
+<!-- <script type="text/javascript" src="../../src/jsjs-wrapper.js"></script> -->
+
+<script type="text/javascript">
+
+function init() {   
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'api.js', false); 
+    xhr.send(null);
+    if (xhr.status != 200) {
+        throw("Failed to get JS for netflix api");
+    }
+    var srcContents = xhr.responseText;
+    
+    var api_params = "{ " +
+        "'title_id' : 'http://api.netflix.com/catalog/movie/70068647'," +
+        "'button_type' : ['PLAY_BUTTON', 'ADD_BUTTON']," +
+        "'show_logo' : 'true'," +
+        "'x' : '40'," +
+        "'y' : '20'," +
+        "'dom_id' : 'myMovieLocation'," +
+        "'application_id' : 'my_consumer_key'" +
+    "}";
+    
+    srcContents = srcContents; // + api_params;
+    
+    var jsObjs = JSJS.Init();
+    
+    // Define a print function that writes to console.log
+    function printFunc(str) {
+        console.log("Print from js.js: " + str);
+    }  
+    var wrappedPrint = JSJS.wrapFunction({
+      func: printFunc,
+      args: [JSJS.Types.charPtr],
+      returns: null
+    }); 
+    JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "print", wrappedPrint, 1, 0);      
+    
+    // Create the "window" object
+    /*jsWindow = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", 0, 0, 0);
+    if (!jsWindow) {
+        throw("Creating object failed");
+    }
+    // Wrap window.name
+    JSJS.DefineProperty(jsObjs.cx, jsWindow, "name", 0, JSJS.wrapGetter(function (id) {
+        return window.name;
+    }, JSJS.Types.charPtr), 0, 0);
+    // Wrap window.location (getter only)
+    jsLocation = JSJS.DefineObject(jsObjs.cx, jsWindow, "location", 0, 0, 0);
+    JSJS.DefineProperty(jsObjs.cx, jsLocation, "search", 0, JSJS.wrapGetter(function (id) {
+        return window.location.search;
+    }, JSJS.Types.charPtr), 0, 0);*/
+    
+    var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcContents);
+    
+    
+}
+
+window.onload = init;
+
+</script>
+</head>
+<body>
+
+<div id="myMovieLocation">
+ <img src="http://cdn-7.nflximg.com/us/boxshots/large/70068647.jpg" /><br />
+</div>
+
+</body>
+</html>

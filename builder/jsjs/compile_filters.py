@@ -163,12 +163,6 @@ def platform_h_filters(line):
     line = disable_assembler(line)
     return line
 
-def disable_threaded_interp(line):
-    return line.replace("define JS_THREADED_INTERP 1", "define JS_THREADED_INTERP 0")
-def jsinterp_cpp_filters(line):
-    line = disable_threaded_interp(line)
-    return line
-
 def disable_goto_thing2(line):
     return line.replace("USE_COMPUTED_GOTO_FOR_MATCH_OPCODE_LOOP", "XXX_STOP_USING_GOTOS_XXX_USE_COMPUTED_GOTO_FOR_MATCH_OPCODE_LOOP")
 def disable_goto_thing1(line):
@@ -186,6 +180,8 @@ def jsval_h_filters(line):
     line = change_asbits_junk(line)
     return line
 
+def disable_threaded_interp(line):
+    return line.replace("define JS_THREADED_INTERP 1", "define JS_THREADED_INTERP 0")
 def change_case1(line):
     return line.replace("# define END_CASE_LEN1      goto advance_pc_by_one;", "# define END_CASE_LEN1      len = 1; break;")
 def change_case2(line):
@@ -207,6 +203,7 @@ def remove_advance_one_label(line):
         line = ""
     return line
 def jsinterp_cpp_filters(line):
+    line = disable_threaded_interp(line)
     line = remove_advance_one_label(line)
     line = change_case1(line)
     line = change_case2(line)

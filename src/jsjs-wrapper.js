@@ -53,6 +53,9 @@ var JSJS = {
         var nameStr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
         return _JS_DefineObject(context, parent, nameStr, clasp, proto, flags);
     },
+    NewObject: function NewObject(cx, clasp, proto, parent) {
+        return _JS_NewObject(cx, clasp, proto, parent);
+    },
     DefineFunction : function DefineFunction(context, obj, name, func, nargs, flags) {
         var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
         var funcPosition = FUNCTION_TABLE.push(func) - 1;
@@ -62,6 +65,10 @@ var JSJS = {
         var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
         return _JS_DefineProperty(cx, obj, namePtr, initial, getter, setter, attrs);
     },
+    SetProperty: function SetProperty(cx, obj, name, vp) {
+        var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
+        return _JS_SetProperty(cx, obj, namePtr, vp);
+    },
     parseUTF16 : function parseUTF16(ptr) {
         //FIXME: this assumes ascii
         var str = '';
@@ -70,6 +77,60 @@ var JSJS = {
             str = str + String.fromCharCode(c);
         }
         return str;
+    },
+    CreateClass: function(flags, addProperty, delProperty, getProperty, setProperty, enumerate, resolve, convert, finalize) {
+        var cls = allocate([0, 0, 0, 0,
+                          flags,
+                          
+                          0, 0, 0, addProperty,
+                          0, 0, 0, delProperty,
+                          0, 0, 0, getProperty,
+                          0, 0, 0, setProperty,
+                          0, 0, 0, enumerate,
+                          0, 0, 0, resolve,
+                          0, 0, 0, convert,
+                          0, 0, 0, finalize,
+                          
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          
+                          ["*",0,0,0,
+                           "i32",0,0,0,
+                           
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           "*",0,0,0,
+                           
+                           "*",0,0,0,"*",0,0,0,
+                           "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                           "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                           "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                           "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                           "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
+                           "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
+        return cls;
     },
     Init : function Init() {
         // Creates a new runtime with 8MB of memory
@@ -103,57 +164,15 @@ var JSJS = {
          *   };
          */
         
-        var _GLOBAL_CLASS = allocate([0, 0, 0, 0,
-                                 JSJS['JSCLASS_GLOBAL_FLAGS'],
-                                 
-                                 0, 0, 0, JSJS['PropertyStub'],
-                                 0, 0, 0, JSJS['PropertyStub'],
-                                 0, 0, 0, JSJS['PropertyStub'],
-                                 0, 0, 0, JSJS['StrictPropertyStub'],
-                                 0, 0, 0, JSJS['EnumerateStub'],
-                                 0, 0, 0, JSJS['ResolveStub'],
-                                 0, 0, 0, JSJS['ConvertStub'],
-                                 0, 0, 0, JSJS['FinalizeStub'],
-                                 
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                 
-                                 ["*",0,0,0,
-                                  "i32",0,0,0,
-                                  
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  "*",0,0,0,
-                                  
-                                  "*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                                  "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
+        var _GLOBAL_CLASS = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+                                                JSJS['PropertyStub'],
+                                                JSJS['PropertyStub'],
+                                                JSJS['PropertyStub'],
+                                                JSJS['StrictPropertyStub'],
+                                                JSJS['EnumerateStub'],
+                                                JSJS['ResolveStub'],
+                                                JSJS['ConvertStub'],
+                                                JSJS['FinalizeStub'])
         
         var global = JSJS.NewCompartmentAndGlobalObject(cx, _GLOBAL_CLASS, 0);
 
@@ -201,7 +220,7 @@ var JSJS = {
 
         var val = JSJS.identifyConvertValue(cx, vp);
         
-        fnName(cx, obj, idStrReal, strict, val);
+        fnName(cx, obj, idStrReal, strict, val, vp);
 
         return 1;
       }
@@ -214,7 +233,11 @@ var JSJS = {
         idStr = _JS_GetStringCharsZ(cx, idStr); 
         idStrReal = JSJS.parseUTF16(idStr);
         var ret = jsFunc(idStrReal);
-        retType['toJSVal'](vp, ret, cx);
+        if (typeof ret == 'object' && 'type' in ret) {
+            ret['type']['toJSVal'](vp, ret['val'], cx);
+        } else {
+            retType['toJSVal'](vp, ret, cx);
+        }
         return 1;
       }
 
@@ -256,6 +279,11 @@ var JSJS = {
             }
             return 1;
         };
+    },
+    NewFunction: function NewFunction(cx, wrappedFunc, nargs, name) {
+        var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
+        var funcPosition = FUNCTION_TABLE.push(wrappedFunc) - 1;
+        return _JS_NewFunction(cx, funcPosition, nargs, 0, 0, name);
     },
     // Initialize the document element
     // jsObjs: The object returned from JSJS.Init()
@@ -445,6 +473,9 @@ var JSJS = {
                 var funcPosition = FUNCTION_TABLE.push(val) - 1;
                 setValue(ptr, funcPosition, 'i32');
             };
+            this['toJSVal'] = function(jsval, val, cx) {
+                return _OBJECT_TO_JSVAL(jsval, val);
+            };
         },
         charPtr : new function() {
             this['size'] = 4;
@@ -471,7 +502,16 @@ var JSJS = {
             this['size'] = 4;
             this['toJSVal'] = function(jsval, val) {
               return _OBJECT_TO_JSVAL(jsval, val)
-            }
+            };
+        },
+        arrayPtr: new function() {
+            this['size'] = 4;
+            this['toJSVal'] = function(jsval, val, cx) {
+                //FIXME: Assumes empty array only
+                assert(val.length == 0);
+                var jsObjPtr = _JS_NewArrayObject(cx, val.length, 0);
+                return _OBJECT_TO_JSVAL(jsval, jsObjPtr);
+            };
         },
         struct : function() {
             var typeArgs = arguments;

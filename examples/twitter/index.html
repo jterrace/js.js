@@ -1,0 +1,125 @@
+<html>
+<head>
+<title>js.js Twitter Button</title>
+<script type="text/javascript" src="../../src/libjs.O2.js"></script>
+<script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+<script type="text/javascript">
+
+function init() {
+   var xhr = new XMLHttpRequest();
+   xhr.open('GET', 'widgets.js', false); 
+   xhr.send(null);
+   if (xhr.status != 200) {
+       throw("Failed to get JS for twitter");
+   }
+   var srcContents = xhr.responseText;
+   
+   var jsObjs = JSJS.Init();
+   
+   /*jsDocument = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "document", 0, 0, 0);
+   function jsGetElementsByTagName(something) {
+       console.log("getelementsbytagname " + something);
+       return [];
+   }
+   var wrappedGetElementsByTagName = JSJS.wrapFunction({
+       func: jsGetElementsByTagName,
+       args: [JSJS.Types.charPtr],
+       returns: JSJS.Types.arrayPtr});
+   JSJS.DefineFunction(jsObjs.cx, jsDocument, "getElementsByTagName", wrappedGetElementsByTagName, 1, 0);
+   
+   function jsCreateElement(something) {
+       console.log("create element " + something);
+       if (something == "a") {
+           return JSJS.NewObject(jsObjs.cx, 0, 0, jsDocument);
+       }
+       return null;
+   }
+   var wrappedCreateElement = JSJS.wrapFunction({
+       func: jsCreateElement,
+       args: [JSJS.Types.charPtr],
+       returns: JSJS.Types.objPtr});
+   JSJS.DefineFunction(jsObjs.cx, jsDocument, "createElement", wrappedCreateElement, 1, 0);*/
+   
+   //jsWindow = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", 0, 0, 0);
+   
+   function jsGetElementsByTagName(something) {
+       console.log("getelementsbytagname " + something);
+       return [];
+   }
+   var wrappedGetElementsByTagName = JSJS.wrapFunction({
+       func: jsGetElementsByTagName,
+       args: [JSJS.Types.charPtr],
+       returns: JSJS.Types.arrayPtr});
+   var ptrGetElementsByTagName = JSJS.NewFunction(jsObjs.cx, wrappedGetElementsByTagName, 1, "getElementsByTagName");
+   
+   function jsCreateElement(something) {
+       console.log("create element " + something);
+       if (something == "a") {
+           //return JSJS.NewObject(jsObjs.cx, 0, 0, jsDocument);
+       }
+       return null;
+   }
+   var wrappedCreateElement = JSJS.wrapFunction({
+       func: jsCreateElement,
+       args: [JSJS.Types.charPtr],
+       returns: JSJS.Types.objPtr});
+   var ptrCreateElement = JSJS.NewFunction(jsObjs.cx, wrappedCreateElement, 1, "createElement");
+   
+   function documentGetProperty(propName) {
+       console.log('getting document property ' + propName);
+       switch(propName) {
+           case "getElementsByTagName":
+               return {'type': JSJS.Types.funcPtr, 'val': ptrGetElementsByTagName};
+               break;
+           case "createElement":
+               return {'type': JSJS.Types.funcPtr, 'val': ptrCreateElement};
+       }
+       return true;
+   }
+   
+   var jsDocumentClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+                                     JSJS['PropertyStub'],
+                                     JSJS['PropertyStub'],
+                                     JSJS.wrapGetter(documentGetProperty, JSJS.Types.bool),
+                                     JSJS['StrictPropertyStub'],
+                                     JSJS['EnumerateStub'],
+                                     JSJS['ResolveStub'],
+                                     JSJS['ConvertStub'],
+                                     JSJS['FinalizeStub']);
+   var jsDocument = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "document", jsDocumentClass, 0, 0);
+   
+   function windowGetProperty(propName) {
+       console.log('getting window property ' + propName);
+       return true;
+   }
+   function windowSetProperty(cx, obj, idStrReal, strict, val, jsval) {
+       console.log('setting window property ' + idStrReal + " = " + val + " / " + jsval);
+       // Copy window property sets to the global object
+       JSJS.SetProperty(jsObjs.cx, jsObjs.glob, idStrReal, jsval);
+       return true;
+   }
+   var jsWindowClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+           JSJS['PropertyStub'],
+           JSJS['PropertyStub'],
+           JSJS.wrapGetter(windowGetProperty, JSJS.Types.bool),
+           JSJS.wrapSetter(windowSetProperty),
+           JSJS['EnumerateStub'],
+           JSJS['ResolveStub'],
+           JSJS['ConvertStub'],
+           JSJS['FinalizeStub']);
+   var jsWindow = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", jsWindowClass, 0, 0);
+   
+   // Everything has gone well, execute script
+   var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcContents);
+}
+
+window.onload = init;
+
+</script>
+</head>
+<body>
+<h1>Hello</h1>
+<a href="https://twitter.com/share" class="twitter-share-button" data-via="jterrace" data-size="large">Tweet</a>
+<h2>Hi</h2>
+</body>
+</html>

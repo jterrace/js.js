@@ -218,12 +218,12 @@ var JSJS = {
          }
          else if(_JSVAL_IS_INT(val)) { // Ints
            return (_JSVAL_TO_INT(val));
-         } else if(_JSVAL_IS_DOUBLE(val)) { // Doubles 
+         } else if(_JSVAL_IS_DOUBLE(val)) { // Doubles
            return (_JSVAL_TO_DOUBLE(val));
          } else if(_JSVAL_IS_BOOLEAN(val)) { // Boolean
-           return (_JSVAL_TO_BOOLEAN(val)) 
+           return _JSVAL_TO_BOOLEAN(val) == 1 ? true : false; 
          } else if(_JSVAL_IS_OBJECT(val)) { // Objects
-           return (_JSVAL_TO_OBJECT(val))
+           return (_JSVAL_TO_OBJECT(val));
          }
          return false;
     },
@@ -300,7 +300,7 @@ var JSJS = {
             var returnVals = [];
             var outBufOffset = outBuf;
             for (i = 0; i < params['args'].length; i++) {
-                returnVals.push(params['args'][i]['fromPtr'](outBufOffset));
+                returnVals.push(params['args'][i]['fromPtr'](outBufOffset, jsval + 16 + i * 8));
                 outBufOffset += params['args'][i]['size'];
             }
             var retVal = params['func'].apply(this, returnVals);
@@ -316,6 +316,10 @@ var JSJS = {
         var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
         var funcPosition = FUNCTION_TABLE.push(wrappedFunc) - 1;
         return _JS_NewFunction(cx, funcPosition, nargs, 0, 0, name);
+    },
+    CallFunctionValue: function CallFunctionValue(cx, thisobj, fval) {
+        var rval = allocate(1, 'i8', ALLOC_NORMAL);
+        return _JS_CallFunctionValue(cx, thisobj, fval, 0, 0, rval);
     },
     // Initialize the document element
     // jsObjs: The object returned from JSJS.Init()
@@ -536,8 +540,21 @@ var JSJS = {
         },
         objPtr : new function() {
             this['size'] = 4;
+            this['formatStr'] = 'o';
             this['toJSVal'] = function(jsval, val) {
               return _OBJECT_TO_JSVAL(jsval, val)
+            };
+            this['fromPtr'] = function(ptr) {
+                return _JSVAL_TO_OBJECT(ptr);
+            };
+            this['type'] = 'i32';
+        },
+        dynamicPtr : new function() {
+            this['size'] = 4;
+            this['formatStr'] = '*';
+            this['type'] = 'i32';
+            this['fromPtr'] = function(ptr, origPtr) {
+                return origPtr;
             };
         },
         arrayPtr: new function() {

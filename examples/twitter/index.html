@@ -113,6 +113,8 @@ function init() {
            JSJS['FinalizeStub']);
    var jsNavigator = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "navigator", jsNavigatorClass, 0, 0);
    
+   var wrappedMap = {};
+   
    function makeWrappedElement(elem, getter, setter, resolver) {
        function _elementBoxGetProperty(propName) {
            console.log('element box get ' + propName);
@@ -153,6 +155,7 @@ function init() {
        var ptrCompareDocumentPosition = JSJS.NewFunction(jsObjs.cx, wrappedCompareDocumentPosition, 1, "compareDocumentPosition");
        JSJS.SetProperty(jsObjs.cx, objPtr, "compareDocumentPosition", ptrCompareDocumentPosition);
        
+       wrappedMap[objPtr] = elem;
        return objPtr;
    }
    
@@ -182,7 +185,6 @@ function init() {
        returns: JSJS.Types.objPtr});
    var ptrGetElementById = JSJS.NewFunction(jsObjs.cx, wrappedGetElementById, 1, "getElementById");
    
-
     function jsIframeCloneNode(deep) {
             console.log("cloneIframeNode ");
             {
@@ -190,27 +192,89 @@ function init() {
                 
                 function jsIframeSetAttribute(attrName, attrValue) {
                     console.log("wrapped Iframe setAttribute " + attrName);
-                    throw "Not Implemented";
+                    var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
+                    switch (attrName) {
+                        case "allowTransparency":
+                        case "frameBorder":
+                        case "scrolling":
+                        case "tabIndex":
+                        case "name":
+                            console.log("setting iframe " + attrName + "=" + attrConverted);
+                            wrappedElem.setAttribute(attrName, attrConverted);
+                            return null;
+                    }
+                    throw "Not Allowed";
                 }
                 var wrappedIframeSetAttribute = JSJS.wrapFunction({
                     func: jsIframeSetAttribute,
-                    args: [JSJS.Types.charPtr, JSJS.Types.objPtr],
+                    args: [JSJS.Types.charPtr, JSJS.Types.dynamicPtr],
                     returns: null});
                 var ptrIframeSetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedIframeSetAttribute, 2, "setAttribute");
                 
-                return makeWrappedElement(document.createElement("iframe"),
+                function jsIframeGetAttribute(attrName) {
+                    console.log("wrapped Iframe getAttribute " + attrName);
+                    switch (attrName) {
+                        case "style":
+                            return {'type': JSJS.Types.charPtr, 'val': wrappedElem.style};
+                            break;
+                    }
+                    throw "Not Implemented";
+                }
+                var wrappedIframeGetAttribute = JSJS.wrapFunction({
+                    func: jsIframeGetAttribute,
+                    args: [JSJS.Types.charPtr],
+                    returns: null});
+                var ptrIframeGetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedIframeGetAttribute, 1, "getAttribute");
+                
+                function jsIframeAddEventListener(type, listener, useCapture) {
+                    console.log("wrapped Iframe addEventListener " + type);
+                    if (type == "load") {
+                        wrappedElem.addEventListener("load", function() {
+                            var jsvalout = Module.allocate(2, 'i32');
+                            _OBJECT_TO_JSVAL(jsvalout, listener);
+                            assert(_JSVAL_IS_OBJECT(jsvalout));
+                            console.log("about to call iframe callback");
+                            JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout);
+                            console.log("finished calling iframe load");
+                        });
+                        return undefined;
+                    }
+                    throw "Not Implemented";
+                }
+                var wrappedIframeAddEventListener = JSJS.wrapFunction({
+                    func: jsIframeAddEventListener,
+                    args: [JSJS.Types.charPtr, JSJS.Types.objPtr, JSJS.Types.bool],
+                    numRequired: 2,
+                    returns: null});
+                var ptrIframeAddEventListener = JSJS.NewFunction(jsObjs.cx, wrappedIframeAddEventListener, 1, "addEventListener");
+                
+                return makeWrappedElement(wrappedElem,
                         function getter(propName) {
                             console.log("iframe getter " + propName);
-                            if (propName == "id") {
-                                return {'type': JSJS.Types.charPtr, 'val': wrappedElem.id};
-                            } else if (propName == "setAttribute") {
-                                return {'type': JSJS.Types.funcPtr, 'val': ptrIframeSetAttribute};
+                            switch (propName) {
+                                case "id":
+                                    return {'type': JSJS.Types.charPtr, 'val': wrappedElem.id};
+                                case "setAttribute":
+                                    return {'type': JSJS.Types.funcPtr, 'val': ptrIframeSetAttribute};
+                                case "getAttribute":
+                                    return {'type': JSJS.Types.funcPtr, 'val': ptrIframeGetAttribute};
+                                case "style":
+                                    return {'type': JSJS.Types.charPtr, 'val': wrappedElem.style};
+                                case "addEventListener":
+                                    return {'type': JSJS.Types.funcPtr, 'val': ptrIframeAddEventListener};
                             }
                         },
                         function setter(cx, obj, propName, strict, val, jsval) {
                             console.log("iframe setter " + propName);
                             if (propName == "id") {
                                 wrappedElem.id = val;
+                            } else if (propName == "src") {
+                                var l = document.createElement("a");
+                                l.href = val;
+                                if (l.hostname == "platform.twitter.com") {
+                                    console.log("setting iframe source to " + val);
+                                    wrappedElem.src = val;
+                                }
                             }
                         },
                         function resolver(propName) {
@@ -270,12 +334,18 @@ function init() {
 
         function jsQuerySelectorAll(selectors) {
             console.log("querySelectorAll " + selectors);
+            switch (selectors) {
+                case "a.twitter-share-button":
+                    return [];
+                default:
+                    return [];
+            }
             throw "Not implemented";
         }
         var wrappedQuerySelectorAll = JSJS.wrapFunction({
             func : jsQuerySelectorAll,
             args : [ JSJS.Types.charPtr ],
-            returns : null
+            returns : JSJS.Types.arrayPtr
         });
         var ptrQuerySelectorAll = JSJS.NewFunction(jsObjs.cx,
                 wrappedQuerySelectorAll, 1, "querySelectorAll");
@@ -301,65 +371,63 @@ function init() {
             console.log('getting document property ' + propName);
             switch (propName) {
                 case "getElementsByTagName":
-                    return {
-                        'type' : JSJS.Types.funcPtr,
-                        'val' : ptrGetElementsByTagName
-                    };
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrGetElementsByTagName};
                     break;
                 case "getElementById":
-                    return {
-                        'type' : JSJS.Types.funcPtr,
-                        'val' : ptrGetElementById
-                    };
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrGetElementById};
                     break;
                 case "createElement":
-                    return {
-                        'type' : JSJS.Types.funcPtr,
-                        'val' : ptrCreateElement
-                    };
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrCreateElement};
                     break;
                 case "readyState":
-                    return {
-                        'type' : JSJS.Types.charPtr,
-                        'val' : "complete"
-                    };
+                    return {'type' : JSJS.Types.charPtr, 'val' : "complete"};
                     break;
                 case "addEventListener":
-                    return {
-                        'type' : JSJS.Types.funcPtr,
-                        'val' : ptrAddEventListener
-                    };
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrAddEventListener};
                     break;
                 case "title":
-                    return {
-                        'type' : JSJS.Types.charPtr,
-                        'val' : document.title
-                    };
+                    return {'type' : JSJS.Types.charPtr, 'val' : document.title};
                     break;
                 case "documentElement":
-                    return {
-                        'type' : JSJS.Types.objPtr,
-                        'val' : makeWrappedElement(document.documentElement)
-                    };
+                    return {'type' : JSJS.Types.objPtr, 'val' : makeWrappedElement(document.documentElement)};
                     break;
                 case "querySelectorAll":
-                    return {
-                        'type' : JSJS.Types.funcPtr,
-                        'val' : ptrQuerySelectorAll
-                    };
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrQuerySelectorAll};
                     break;
                 case "querySelector":
-                    return {
-                        'type' : JSJS.Types.funcPtr,
-                        'val' : ptrQuerySelector
-                    };
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrQuerySelector};
                     break;
                 case "location":
-                    return {
-                        'type' : JSJS.Types.objPtr,
-                        'val' : jsLocation
-                    };
+                    return {'type' : JSJS.Types.objPtr, 'val' : jsLocation};
                     break;
+                case "body":
+                    {
+                    
+                    function jsBodyInsertBefore(newElement, referenceElement) {
+                        console.log("body insertBefore");
+                        if (newElement in wrappedMap && wrappedMap[newElement].tagName == "IFRAME") {
+                            document.body.insertBefore(wrappedMap[newElement], document.body.firstChild);
+                            return null;
+                        }
+                        throw "Not Implemented";
+                    }
+                    var wrappedBodyInsertBefore = JSJS.wrapFunction({
+                        func: jsBodyInsertBefore,
+                        args: [JSJS.Types.objPtr, JSJS.Types.objPtr],
+                        returns: null});
+                    var ptrBodyInsertBefore = JSJS.NewFunction(jsObjs.cx, wrappedBodyInsertBefore, 2, "insertBefore");
+                    
+                    return {'type': JSJS.Types.objPtr, 'val': makeWrappedElement(document.body,
+                            function getter(propName) {
+                                console.log("document.body getter " + propName);
+                                switch (propName) {
+                                    case "insertBefore":
+                                        return {'type': JSJS.Types.funcPtr, 'val': ptrBodyInsertBefore};
+                                }
+                            }, function setter(cx, obj, propName, strict, val, jsval) {
+                                console.log("document.body setter " + propName);
+                            })}
+                    }
             }
             console.log("returning nothing for document." + propName);
             return true;

@@ -543,7 +543,8 @@ __twttrlr((function(using, provide, loadrunner, define) {
       j.prototype = new i, c.aug(j.prototype, {
         init: (function() {
           function b(b) {
-            b.source === a.child && (!a._ready && b.data === e ? a.ready() : a.receive(b.data));
+              throw b;
+            //b.source === a.child && (!a._ready && b.data === e ? a.ready() : a.receive(b.data));
           }
           var a = this;
           window.addEventListener ? window.addEventListener("message", b, !1) : window.attachEvent("onmessage", b);

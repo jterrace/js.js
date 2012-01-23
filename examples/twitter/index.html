@@ -113,6 +113,32 @@ function init() {
            JSJS['FinalizeStub']);
    var jsNavigator = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "navigator", jsNavigatorClass, 0, 0);
    
+   function wrapEventObject(evOrig, srcPtr) {
+       function eventGetProperty(propName) {
+           console.log("event get property " + propName);
+           switch(propName) {
+           case "source":
+               return {'type': JSJS.Types.objPtr, 'val': srcPtr};
+               break;
+           case "data":
+               return {'type': JSJS.Types.charPtr, 'val': evOrig.data};
+               break;
+           }
+           throw "Not Implemented event prop - " + propName;
+       }
+       var jsEventClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+               JSJS['PropertyStub'],
+               JSJS['PropertyStub'],
+               JSJS.wrapGetter(eventGetProperty, JSJS.Types.bool),
+               JSJS['StrictPropertyStub'],
+               JSJS['EnumerateStub'],
+               JSJS['ResolveStub'],
+               JSJS['ConvertStub'],
+               JSJS['FinalizeStub']);
+       var jsEvent = JSJS.NewObject(jsObjs.cx, jsEventClass, 0, 0);
+       return jsEvent;
+   }
+   
    var wrappedMap = {};
    
    function makeWrappedElement(elem, getter, setter, resolver) {
@@ -262,6 +288,8 @@ function init() {
                                     return {'type': JSJS.Types.charPtr, 'val': wrappedElem.style};
                                 case "addEventListener":
                                     return {'type': JSJS.Types.funcPtr, 'val': ptrIframeAddEventListener};
+                                case "contentWindow":
+                                    return {'type': JSJS.Types.objPtr, 'val': makeWrappedElement(wrappedElem.contentWindow)};
                             }
                         },
                         function setter(cx, obj, propName, strict, val, jsval) {
@@ -317,21 +345,44 @@ function init() {
             args : [ JSJS.Types.charPtr ],
             returns : JSJS.Types.objPtr
         });
-        var ptrCreateElement = JSJS.NewFunction(jsObjs.cx,
-                wrappedCreateElement, 1, "createElement");
+        var ptrCreateElement = JSJS.NewFunction(jsObjs.cx, wrappedCreateElement, 1, "createElement");
 
-        function jsAddEventListener(eventName, callback, useCapture) {
-            console.log("add event listener " + eventName);
+        
+        function jsAddEventListener(type, listener, useCapture) {
+            console.log("document add event listener " + type);
+            if (type == "DOMContentLoaded") {
+                var jsvalout = Module.allocate(2, 'i32');
+                _OBJECT_TO_JSVAL(jsvalout, listener);
+                assert(_JSVAL_IS_OBJECT(jsvalout));
+                console.log("about to call DOMContentLoaded callback");
+                JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout);
+                console.log("finished calling DOMContentLoaded");
+                return undefined;
+            }
+            throw "Not Implemented";
         }
         var wrappedAddEventListener = JSJS.wrapFunction({
-            func : jsAddEventListener,
-            args : [ JSJS.Types.charPtr, JSJS.Types.funcPtr ],
-            numRequired : 2,
-            returns : null
-        });
-        var ptrAddEventListener = JSJS.NewFunction(jsObjs.cx,
-                wrappedAddEventListener, 1, "createElement");
+            func: jsAddEventListener,
+            args: [JSJS.Types.charPtr, JSJS.Types.objPtr, JSJS.Types.bool],
+            numRequired: 2,
+            returns: null});
+        var ptrAddEventListener = JSJS.NewFunction(jsObjs.cx, wrappedAddEventListener, 3, "addEventListener");
 
+        function jsRemoveEventListener(type, listener, useCapture) {
+            console.log("document remove event listener " + type);
+            if (type == "DOMContentLoaded") {
+                return undefined;
+            }
+            throw "Not Implemented";
+        }
+        var wrappedRemoveEventListener = JSJS.wrapFunction({
+            func: jsRemoveEventListener,
+            args: [JSJS.Types.charPtr, JSJS.Types.objPtr, JSJS.Types.bool],
+            numRequired: 2,
+            returns: null});
+        var ptrRemoveEventListener = JSJS.NewFunction(jsObjs.cx, wrappedRemoveEventListener, 3, "removeEventListener");
+        
+        
         function jsQuerySelectorAll(selectors) {
             console.log("querySelectorAll " + selectors);
             switch (selectors) {
@@ -347,8 +398,7 @@ function init() {
             args : [ JSJS.Types.charPtr ],
             returns : JSJS.Types.arrayPtr
         });
-        var ptrQuerySelectorAll = JSJS.NewFunction(jsObjs.cx,
-                wrappedQuerySelectorAll, 1, "querySelectorAll");
+        var ptrQuerySelectorAll = JSJS.NewFunction(jsObjs.cx, wrappedQuerySelectorAll, 1, "querySelectorAll");
 
         function jsQuerySelector(selectors) {
             console.log("querySelector " + selectors);
@@ -359,8 +409,7 @@ function init() {
             args : [ JSJS.Types.charPtr ],
             returns : null
         });
-        var ptrQuerySelector = JSJS.NewFunction(jsObjs.cx,
-                wrappedQuerySelector, 1, "querySelector");
+        var ptrQuerySelector = JSJS.NewFunction(jsObjs.cx, wrappedQuerySelector, 1, "querySelector");
 
         function documentResolveProperty(propName) {
             console.log("document resolve " + propName);
@@ -384,6 +433,9 @@ function init() {
                     break;
                 case "addEventListener":
                     return {'type' : JSJS.Types.funcPtr, 'val' : ptrAddEventListener};
+                    break;
+                case "removeEventListener":
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrRemoveEventListener};
                     break;
                 case "title":
                     return {'type' : JSJS.Types.charPtr, 'val' : document.title};
@@ -455,25 +507,50 @@ function init() {
             args : [ JSJS.Types.objPtr, JSJS.Types.charPtr ],
             returns : null
         });
-        var ptrPostMessage = JSJS.NewFunction(jsObjs.cx, wrappedPostMessage, 2,
-                "postMessage");
+        var ptrPostMessage = JSJS.NewFunction(jsObjs.cx, wrappedPostMessage, 2, "postMessage");
 
+        function jsWindowAddEventListener(type, listener, useCapture) {
+            console.log("Window addEventListener " + type);
+            if (type == "message") {
+                window.addEventListener("message", function(event) {
+                    for (wrappedPtr in wrappedMap) {
+                        if (wrappedMap[wrappedPtr] == event.source) {
+                            var jsvalout = Module.allocate(2, 'i32');
+                            JSJS.Types.objPtr.toJSVal(jsvalout, listener);
+                            assert(_JSVAL_IS_OBJECT(jsvalout));
+                            console.log("about to call message callback");
+                            JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.double], [4.5]);
+                            //JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout);/*, 
+                                   // [JSJS.Types.objPtr], [wrapEventObject(event, wrappedPtr)]);*/
+                            console.log("done calling message callback");
+                        }
+                    }
+                    console.log("window message received");
+                    throw "Not Implemented";
+                });
+                return undefined;
+            }
+            throw "Not Implemented";
+        }
+        var wrappedWindowAddEventListener = JSJS.wrapFunction({
+            func: jsWindowAddEventListener,
+            args: [JSJS.Types.charPtr, JSJS.Types.objPtr, JSJS.Types.bool],
+            numRequired: 2,
+            returns: null});
+        var ptrWindowAddEventListener = JSJS.NewFunction(jsObjs.cx, wrappedWindowAddEventListener, 1, "addEventListener");
+        
         function windowGetProperty(propName) {
             console.log('getting window property ' + propName);
             switch (propName) {
                 case "postMessage":
-                    return {
-                        'type' : JSJS.Types.funcPtr,
-                        'val' : ptrPostMessage
-                    };
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrPostMessage};
+                    break;
+                case "addEventListener":
+                    return {'type' : JSJS.Types.funcPtr, 'val' : ptrWindowAddEventListener};
                     break;
                 default:
                     console.log("returning global value for prop " + propName);
-                    return {
-                        'type' : null,
-                        'val' : JSJS.GetProperty(jsObjs.cx, jsObjs.glob,
-                                propName)
-                    };
+                    return {'type' : null, 'val' : JSJS.GetProperty(jsObjs.cx, jsObjs.glob, propName)};
                     break;
             }
             return true;

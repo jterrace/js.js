@@ -317,9 +317,26 @@ var JSJS = {
         var funcPosition = FUNCTION_TABLE.push(wrappedFunc) - 1;
         return _JS_NewFunction(cx, funcPosition, nargs, 0, 0, name);
     },
-    CallFunctionValue: function CallFunctionValue(cx, thisobj, fval) {
-        var rval = allocate(1, 'i8', ALLOC_NORMAL);
-        return _JS_CallFunctionValue(cx, thisobj, fval, 0, 0, rval);
+    CallFunctionValue: function CallFunctionValue(cx, thisobj, fval, argTypes, argVals) {
+        var jsvalArray = 0;
+        var numArgs = 0;
+        if (argTypes != undefined || argVals != undefined) {
+            numArgs = argTypes.length;
+            var jsvalArray = allocate(numArgs * 2, 'i32', ALLOC_NORMAL);
+            for (i=0; i<numArgs; i++) {
+                argTypes[i]['toJSVal'](jsvalArray + i * 8, argVals[i]);
+            }
+        }
+        var rval = allocate(1, 'i32', ALLOC_NORMAL);
+        if (numArgs > 0) {
+        console.log(jsvalArray);
+        console.log(getValue(jsvalArray, 'i32'));
+        console.log(getValue(jsvalArray + 4, 'i32'));
+        console.log(_JSVAL_IS_DOUBLE(jsvalArray));
+        console.log(_JSVAL_TO_DOUBLE(jsvalArray));
+        throw 3;
+        }
+        return _JS_CallFunctionValue(cx, thisobj, fval, numArgs, jsvalArray, rval);
     },
     // Initialize the document element
     // jsObjs: The object returned from JSJS.Init()
@@ -546,6 +563,9 @@ var JSJS = {
             };
             this['fromPtr'] = function(ptr) {
                 return _JSVAL_TO_OBJECT(ptr);
+            };
+            this['setPtr'] = function(val, ptr) {
+                setValue(ptr, val, 'i32');
             };
             this['type'] = 'i32';
         },

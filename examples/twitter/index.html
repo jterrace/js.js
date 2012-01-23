@@ -14,9 +14,147 @@ function init() {
    }
    var srcContents = xhr.responseText;
    
-   var jsObjs = JSJS.Init();
+   function globalResolveProperty(propName) {
+       console.log("global resolve " + propName);
+       return 1;
+   }
+   function globalGetProperty(propName) {
+       console.log('getting global property ' + propName);
+       return undefined;
+   }
    
-   /*jsDocument = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "document", 0, 0, 0);
+   var jsObjs = JSJS.Init({'global_getter': JSJS.wrapGetter(globalGetProperty, JSJS.Types.bool),
+       'global_resolver': JSJS.wrapResolver(globalResolveProperty)});
+   
+   function locationGetProperty(propName) {
+       console.log("location get property " + propName);
+       switch(propName) {
+       case "hash":
+           return {'type': JSJS.Types.charPtr, 'val': window.location.hash};
+           break;
+       case "host":
+           return {'type': JSJS.Types.charPtr, 'val': window.location.host};
+           break;
+       case "hostname":
+           return {'type': JSJS.Types.charPtr, 'val': window.location.hostname};
+           break;
+       case "href":
+           return {'type': JSJS.Types.charPtr, 'val': window.location.href};
+           break;
+       case "pathname":
+           return {'type': JSJS.Types.charPtr, 'val': window.location.pathname};
+           break;
+       case "port":
+           return {'type': JSJS.Types.double, 'val': window.location.port};
+           break;
+       case "protocol":
+           return {'type': JSJS.Types.charPtr, 'val': window.location.protocol};
+           break;
+       case "search":
+           return {'type': JSJS.Types.charPtr, 'val': window.location.search};
+           break;
+       }
+       throw "Not Implemented location prop - " + propName;
+   }
+   var jsLocationClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+           JSJS['PropertyStub'],
+           JSJS['PropertyStub'],
+           JSJS.wrapGetter(locationGetProperty, JSJS.Types.bool),
+           JSJS['StrictPropertyStub'],
+           JSJS['EnumerateStub'],
+           JSJS['ResolveStub'],
+           JSJS['ConvertStub'],
+           JSJS['FinalizeStub']);
+   var jsLocation = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "location", jsLocationClass, 0, 0);
+   
+   function screenGetProperty(propName) {
+       console.log("screen get property " + propName);
+       switch(propName) {
+       case "width":
+           return {'type': JSJS.Types.double, 'val': screen.width};
+           break;
+       case "height":
+           return {'type': JSJS.Types.double, 'val': screen.height};
+           break;
+       }
+       throw "Not Implemented screen prop - " + propName;
+   }
+   var jsScreenClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+           JSJS['PropertyStub'],
+           JSJS['PropertyStub'],
+           JSJS.wrapGetter(screenGetProperty, JSJS.Types.bool),
+           JSJS['StrictPropertyStub'],
+           JSJS['EnumerateStub'],
+           JSJS['ResolveStub'],
+           JSJS['ConvertStub'],
+           JSJS['FinalizeStub']);
+   var jsScreen = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "screen", jsScreenClass, 0, 0);
+   
+   function navigatorGetProperty(propName) {
+       console.log("navigator get property " + propName);
+       switch(propName) {
+       case "doNotTrack":
+           return {'type': JSJS.Types.double, 'val': 1};
+           break;
+       case "userAgent":
+           return {'type': JSJS.Types.charPtr, 'val': navigator.userAgent};
+           break;
+       }
+       throw "Not Implemented navigator prop - " + propName;
+   }
+   var jsNavigatorClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+           JSJS['PropertyStub'],
+           JSJS['PropertyStub'],
+           JSJS.wrapGetter(navigatorGetProperty, JSJS.Types.bool),
+           JSJS['StrictPropertyStub'],
+           JSJS['EnumerateStub'],
+           JSJS['ResolveStub'],
+           JSJS['ConvertStub'],
+           JSJS['FinalizeStub']);
+   var jsNavigator = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "navigator", jsNavigatorClass, 0, 0);
+   
+   function makeWrappedElement(elem) {
+       
+       function elementBoxGetProperty(propName) {
+           console.log('element box get ' + propName);
+           return true;
+       }
+       function elementBoxSetProperty(cx, obj, idStrReal, strict, val, jsval) {
+           console.log('setting element box property ' + idStrReal + " = " + val + " / " + jsval);
+           return true;
+       }
+       function elementBoxResolveProperty(idStrReal) {
+           console.log("element box resolve property " + idStrReal);
+           return 1;
+       }
+       var jsElementBox = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+               JSJS['PropertyStub'],
+               JSJS['PropertyStub'],
+               JSJS.wrapGetter(elementBoxGetProperty, JSJS.Types.bool),
+               JSJS.wrapSetter(elementBoxSetProperty),
+               JSJS['EnumerateStub'],
+               JSJS.wrapResolver(elementBoxResolveProperty),
+               JSJS['ConvertStub'],
+               JSJS['FinalizeStub']);
+       
+       var objPtr = JSJS.NewObject(jsObjs.cx, jsElementBox, 0, 0);
+       
+       function elementCompareDocumentPosition(otherNode) {
+           console.log("elementCompareDocumentPosition");
+           throw "Not Implemented";
+           return 0;
+       }
+       var wrappedCompareDocumentPosition = JSJS.wrapFunction({
+           func: elementCompareDocumentPosition,
+           args: [JSJS.Types.objPtr],
+           returns: JSJS.Types.double});
+       var ptrCompareDocumentPosition = JSJS.NewFunction(jsObjs.cx, wrappedCompareDocumentPosition, 1, "compareDocumentPosition");
+       JSJS.SetProperty(jsObjs.cx, objPtr, "compareDocumentPosition", ptrCompareDocumentPosition);
+       
+       return objPtr;
+   }
+   
+   
    function jsGetElementsByTagName(something) {
        console.log("getelementsbytagname " + something);
        return [];
@@ -25,7 +163,22 @@ function init() {
        func: jsGetElementsByTagName,
        args: [JSJS.Types.charPtr],
        returns: JSJS.Types.arrayPtr});
-   JSJS.DefineFunction(jsObjs.cx, jsDocument, "getElementsByTagName", wrappedGetElementsByTagName, 1, 0);
+   var ptrGetElementsByTagName = JSJS.NewFunction(jsObjs.cx, wrappedGetElementsByTagName, 1, "getElementsByTagName");
+   
+   function jsGetElementById(elemId) {
+       console.log("getelementbyid " + elemId);
+       var elem = document.getElementById(elemId);
+       if (elem == null) {
+           return 0;
+       } else {
+           throw "Not implemented getelementbyid";
+       }
+   }
+   var wrappedGetElementById = JSJS.wrapFunction({
+       func: jsGetElementById,
+       args: [JSJS.Types.charPtr],
+       returns: JSJS.Types.objPtr});
+   var ptrGetElementById = JSJS.NewFunction(jsObjs.cx, wrappedGetElementById, 1, "getElementById");
    
    function jsCreateElement(something) {
        console.log("create element " + something);
@@ -38,32 +191,42 @@ function init() {
        func: jsCreateElement,
        args: [JSJS.Types.charPtr],
        returns: JSJS.Types.objPtr});
-   JSJS.DefineFunction(jsObjs.cx, jsDocument, "createElement", wrappedCreateElement, 1, 0);*/
-   
-   //jsWindow = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", 0, 0, 0);
-   
-   function jsGetElementsByTagName(something) {
-       console.log("getelementsbytagname " + something);
-       return [];
-   }
-   var wrappedGetElementsByTagName = JSJS.wrapFunction({
-       func: jsGetElementsByTagName,
-       args: [JSJS.Types.charPtr],
-       returns: JSJS.Types.arrayPtr});
-   var ptrGetElementsByTagName = JSJS.NewFunction(jsObjs.cx, wrappedGetElementsByTagName, 1, "getElementsByTagName");
-   
-   function jsCreateElement(something) {
-       console.log("create element " + something);
-       if (something == "a") {
-           //return JSJS.NewObject(jsObjs.cx, 0, 0, jsDocument);
-       }
-       return null;
-   }
-   var wrappedCreateElement = JSJS.wrapFunction({
-       func: jsCreateElement,
-       args: [JSJS.Types.charPtr],
-       returns: JSJS.Types.objPtr});
    var ptrCreateElement = JSJS.NewFunction(jsObjs.cx, wrappedCreateElement, 1, "createElement");
+   
+   function jsAddEventListener(eventName, callback, useCapture) {
+       console.log("add event listener " + eventName);
+   }
+   var wrappedAddEventListener = JSJS.wrapFunction({
+       func: jsAddEventListener,
+       args: [JSJS.Types.charPtr, JSJS.Types.funcPtr],
+       numRequired: 2,
+       returns: null});
+   var ptrAddEventListener = JSJS.NewFunction(jsObjs.cx, wrappedAddEventListener, 1, "createElement");
+   
+   function jsQuerySelectorAll(selectors) {
+       console.log("querySelectorAll " + selectors);
+       throw "Not implemented";
+   }
+   var wrappedQuerySelectorAll = JSJS.wrapFunction({
+       func: jsQuerySelectorAll,
+       args: [JSJS.Types.charPtr],
+       returns: null});
+   var ptrQuerySelectorAll = JSJS.NewFunction(jsObjs.cx, wrappedQuerySelectorAll, 1, "querySelectorAll");
+   
+   function jsQuerySelector(selectors) {
+       console.log("querySelector " + selectors);
+       throw "Not implemented"
+   }
+   var wrappedQuerySelector = JSJS.wrapFunction({
+       func: jsQuerySelector,
+       args: [JSJS.Types.charPtr],
+       returns: null});
+   var ptrQuerySelector = JSJS.NewFunction(jsObjs.cx, wrappedQuerySelector, 1, "querySelector");
+   
+   function documentResolveProperty(propName) {
+       console.log("document resolve " + propName);
+       return 1;
+   }
    
    function documentGetProperty(propName) {
        console.log('getting document property ' + propName);
@@ -71,9 +234,35 @@ function init() {
            case "getElementsByTagName":
                return {'type': JSJS.Types.funcPtr, 'val': ptrGetElementsByTagName};
                break;
+           case "getElementById":
+               return {'type': JSJS.Types.funcPtr, 'val': ptrGetElementById};
+               break;
            case "createElement":
                return {'type': JSJS.Types.funcPtr, 'val': ptrCreateElement};
+               break;
+           case "readyState":
+               return {'type': JSJS.Types.charPtr, 'val': "complete"};
+               break;
+           case "addEventListener":
+               return {'type': JSJS.Types.funcPtr, 'val': ptrAddEventListener};
+               break;
+           case "title":
+               return {'type': JSJS.Types.charPtr, 'val': document.title};
+               break;
+           case "documentElement":
+               return {'type': JSJS.Types.objPtr, 'val': makeWrappedElement(document.documentElement)};
+               break;
+           case "querySelectorAll":
+               return {'type': JSJS.Types.funcPtr, 'val': ptrQuerySelectorAll};
+               break;
+           case "querySelector":
+               return {'type': JSJS.Types.funcPtr, 'val': ptrQuerySelector};
+               break;
+           case "location":
+               return {'type': JSJS.Types.objPtr, 'val': jsLocation};
+               break;
        }
+       console.log("returning nothing for document." + propName);
        return true;
    }
    
@@ -83,13 +272,21 @@ function init() {
                                      JSJS.wrapGetter(documentGetProperty, JSJS.Types.bool),
                                      JSJS['StrictPropertyStub'],
                                      JSJS['EnumerateStub'],
-                                     JSJS['ResolveStub'],
+                                     JSJS.wrapResolver(documentResolveProperty),
                                      JSJS['ConvertStub'],
                                      JSJS['FinalizeStub']);
    var jsDocument = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "document", jsDocumentClass, 0, 0);
+   JSJS.SetProperty(jsObjs.cx, jsDocument, "querySelectorAll", ptrQuerySelectorAll);
+   JSJS.SetProperty(jsObjs.cx, jsDocument, "querySelector", ptrQuerySelector);
    
    function windowGetProperty(propName) {
        console.log('getting window property ' + propName);
+       switch(propName) {
+           default:
+               console.log("returning global value for prop " + propName);
+               return {'type': null, 'val': JSJS.GetProperty(jsObjs.cx, jsObjs.glob, propName)};
+               break;
+       }
        return true;
    }
    function windowSetProperty(cx, obj, idStrReal, strict, val, jsval) {
@@ -98,18 +295,22 @@ function init() {
        JSJS.SetProperty(jsObjs.cx, jsObjs.glob, idStrReal, jsval);
        return true;
    }
+   function windowResolveProperty(propName) {
+       console.log("window resolve prop " + propName);
+       return 1;
+   }
    var jsWindowClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
            JSJS['PropertyStub'],
            JSJS['PropertyStub'],
            JSJS.wrapGetter(windowGetProperty, JSJS.Types.bool),
            JSJS.wrapSetter(windowSetProperty),
            JSJS['EnumerateStub'],
-           JSJS['ResolveStub'],
+           JSJS.wrapResolver(windowResolveProperty),
            JSJS['ConvertStub'],
            JSJS['FinalizeStub']);
    var jsWindow = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", jsWindowClass, 0, 0);
    
-   // Everything has gone well, execute script
+   console.log("starting exec");
    var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcContents);
 }
 

@@ -69,6 +69,12 @@ var JSJS = {
         var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
         return _JS_SetProperty(cx, obj, namePtr, vp);
     },
+    GetProperty: function GetProperty(cx, obj, name) {
+        var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
+        var rval = allocate(1, 'i8', ALLOC_NORMAL);
+        _JS_GetProperty(cx, obj, namePtr, rval);
+        return rval;
+    },
     parseUTF16 : function parseUTF16(ptr) {
         //FIXME: this assumes ascii
         var str = '';
@@ -132,7 +138,7 @@ var JSJS = {
                            "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
         return cls;
     },
-    Init : function Init() {
+    Init : function Init(params) {
         // Creates a new runtime with 8MB of memory
         var rt = JSJS.NewRuntime(8 * 1024 * 1024);
         var cx = JSJS.NewContext(rt, 8192);
@@ -164,13 +170,22 @@ var JSJS = {
          *   };
          */
         
+        var global_getter = JSJS['PropertyStub'];
+        if (params && 'global_getter' in params) {
+            global_getter = params['global_getter'];
+        }
+        var global_resolver = JSJS['ResolveStub'];
+        if (params && 'global_resolver' in params) {
+            global_resolver = params['global_resolver'];
+        }
+        
         var _GLOBAL_CLASS = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
                                                 JSJS['PropertyStub'],
                                                 JSJS['PropertyStub'],
-                                                JSJS['PropertyStub'],
+                                                global_getter,
                                                 JSJS['StrictPropertyStub'],
                                                 JSJS['EnumerateStub'],
-                                                JSJS['ResolveStub'],
+                                                global_resolver,
                                                 JSJS['ConvertStub'],
                                                 JSJS['FinalizeStub'])
         
@@ -234,14 +249,28 @@ var JSJS = {
         idStrReal = JSJS.parseUTF16(idStr);
         var ret = jsFunc(idStrReal);
         if (typeof ret == 'object' && 'type' in ret) {
-            ret['type']['toJSVal'](vp, ret['val'], cx);
-        } else {
+            if (ret['type'] == null) {
+                _memcpy(vp, ret['val'], 8);
+            } else {
+                ret['type']['toJSVal'](vp, ret['val'], cx);
+            }
+        } else if (ret != undefined) {
             retType['toJSVal'](vp, ret, cx);
         }
         return 1;
       }
 
       return FUNCTION_TABLE.push(wrappedGetter) - 1;
+    },
+    wrapResolver : function(jsFunc) {
+        function wrappedResolver(cx, obj, idval) {
+          var idStr = _JSID_TO_STRING(idval);
+          idStr = _JS_GetStringCharsZ(cx, idStr); 
+          idStrReal = JSJS.parseUTF16(idStr);
+          return jsFunc(idStrReal);
+        }
+
+        return FUNCTION_TABLE.push(wrappedResolver) - 1;
     },
     wrapFunction : function(params) {
         return function wrappedNativeFunction(context, nargs, jsval) {
@@ -250,6 +279,9 @@ var JSJS = {
             var allocateTypes = [];
             for (i = 0; i < params['args'].length; i++) {
                 formatStr += params['args'][i]['formatStr'];
+                if ('numRequired' in params && params['numRequired'] == i+1) {
+                    formatStr += "/";
+                }
                 allocateLengths.push(1);
                 allocateTypes.push(params['args'][i]['type']);
             }
@@ -464,6 +496,7 @@ var JSJS = {
         },
         funcPtr : new function() {
             this['size'] = 4;
+            this['formatStr'] = 'f';
             this['toPtr'] = function(func) {
                 var funcPosition = FUNCTION_TABLE.push(func) - 1;
                 var ptr = allocate(1, 'i32', ALLOC_NORMAL);
@@ -472,6 +505,9 @@ var JSJS = {
             this['setPtr'] = function(val, ptr) {
                 var funcPosition = FUNCTION_TABLE.push(val) - 1;
                 setValue(ptr, funcPosition, 'i32');
+            };
+            this['fromPtr'] = function(ptr) {
+                return ptr;
             };
             this['toJSVal'] = function(jsval, val, cx) {
                 return _OBJECT_TO_JSVAL(jsval, val);

@@ -497,7 +497,11 @@ var JSJS = {
                     this['formatStr'] = formatStr;
                 }
                 this['fromPtr'] = function(ptr) {
-                    return getValue(ptr, type);
+                    var v = getValue(ptr, type);
+                    if (type == 'i1') {
+                        return (v == 1) ? true : false;
+                    }
+                    return v;
                 };
                 this['toPtr'] = function(val) {
                     var ptr = allocate(1, type, ALLOC_NORMAL);

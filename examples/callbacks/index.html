@@ -9,6 +9,8 @@
     function start_jsjs() {
         var jsObjs = JSJS.Init();
 
+        // 1 int
+        
         function callbackInt(func) {
             console.log(func);
             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
@@ -30,6 +32,10 @@
         });
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "callbackInt", wrappedCallbackInt, 1, 0);
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "verifyInt", wrappedVerifyInt, 1, 0);
+        
+        
+        
+        // 1 string 
         
         function callbackString(func) {
             console.log(func);
@@ -53,8 +59,56 @@
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "callbackString", wrappedCallbackString, 1, 0);
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "verifyString", wrappedVerifyString, 1, 0);
         
+        
+        // 1 object
+        
+        function objGetProperty(propName) {
+            console.log("obj get property " + propName);
+            switch(propName) {
+            case "tester":
+                return {'type': JSJS.Types.charPtr, 'val': "hello"};
+                break;
+            }
+            throw "Not Implemented obj prop - " + propName;
+        }
+        var jsObjClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+                JSJS['PropertyStub'],
+                JSJS['PropertyStub'],
+                JSJS.wrapGetter(objGetProperty, JSJS.Types.bool),
+                JSJS['StrictPropertyStub'],
+                JSJS['EnumerateStub'],
+                JSJS['ResolveStub'],
+                JSJS['ConvertStub'],
+                JSJS['FinalizeStub']);
+        var jsObj = JSJS.NewObject(jsObjs.cx, jsObjClass, 0, 0);
+        
+        function callbackObject(func) {
+            console.log(func);
+            var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
+            JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.objPtr], [jsObj]);
+        }
+        function verifyObject(o, b) {
+            console.log("obj val should be " + jsObj + ": " + o);
+            assert(o == jsObj);
+            console.log("obj bool should be 'true': " + b);
+            assert(b == true);
+        }
+        var wrappedCallbackObject = JSJS.wrapFunction({
+            func : callbackObject,
+            args : [JSJS.Types.objPtr],
+            returns : null
+        });
+        var wrappedVerifyObject = JSJS.wrapFunction({
+            func : verifyObject,
+            args : [JSJS.Types.objPtr, JSJS.Types.bool],
+            returns : null
+        });
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "callbackObject", wrappedCallbackObject, 1, 0);
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "verifyObject", wrappedVerifyObject, 2, 0);
+        
         var srcTest = "callbackInt(function(x) {verifyInt(x);});" + 
-                      "callbackString(function(x) {verifyString(x);});"
+                      "callbackString(function(x) {verifyString(x);});" + 
+                      "callbackObject(function(x) {verifyObject(x, x.tester == 'hello');})"
                       ;
         JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcTest);
     }

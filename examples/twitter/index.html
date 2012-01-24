@@ -320,6 +320,9 @@ function init() {
         var ptrIframeClone = JSJS.NewFunction(jsObjs.cx,
                 wrappedIframeCloneNode, 1, "cloneNode");
 
+        var twitButContainer = document.getElementById('twitcontainer');
+        var twitButDestA = document.getElementById('twitbuttdest');
+        
         function jsCreateElement(elemName) {
             console.log("create element " + elemName);
             if (elemName == "a") {
@@ -335,6 +338,82 @@ function init() {
                                         'val' : ptrIframeClone
                                     };
                                     break;
+                            }
+                        });
+            } else if (elemName == "div") {
+                var wrapperDiv = document.createElement("div");
+                var wrappedIframeChild;
+                
+                return makeWrappedElement(wrapperDiv,
+                        function(propName) {
+                            console.log("wrapped div getter " + propName);
+                            switch (propName) {
+                                case "firstChild":
+                                    
+                                    function divIFSetAttribute(attrName, attrValue) {
+                                        console.log("div iframe setAttribute " + attrName);
+                                        var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
+                                        switch(attrName) {
+                                            case "title":
+                                                wrapperDiv.firstChild.setAttribute(attrName, attrValue);
+                                                break;
+                                            default:
+                                                throw "not implemented";
+                                        }
+                                    }
+                                    var wrappedDivIFSetAttribute = JSJS.wrapFunction({
+                                        func: divIFSetAttribute,
+                                        args: [JSJS.Types.charPtr, JSJS.Types.dynamicPtr],
+                                        returns: null});
+                                    var ptrDivIFSetAttribut = JSJS.NewFunction(jsObjs.cx, wrappedDivIFSetAttribute, 1, "setAttribute");
+                                    
+                                    wrappedIframeChild = makeWrappedElement(wrapperDiv.firstChild,
+                                            function(propName) {
+                                                console.log("wrapped iframe get " + propName);
+                                                switch (propName) {
+                                                    case "style":
+                                                        return {type: JSJS.Types.charPtr, val: wrapperDiv.firstChild.style};
+                                                    case "setAttribute":
+                                                        return {type: JSJS.Types.funcPtr, val: ptrDivIFSetAttribut};
+                                                    default:
+                                                        throw "wrappedno";                                                    
+                                                }
+                                            },
+                                            function(cx, obj, propName, strict, val, jsval) {
+                                                console.log("wrapped iframe set " + propName);
+                                                switch (propName) {
+                                                    case "compareDocumentPosition":
+                                                        return;
+                                                    case "src":
+                                                        var l = document.createElement("a");
+                                                        l.href = val;
+                                                        if (l.hostname == "platform.twitter.com") {
+                                                            console.log("setting iframe source to " + val);
+                                                            wrapperDiv.firstChild.src = val;
+                                                            return;
+                                                        }
+                                                    case "className":
+                                                        wrapperDiv.firstChild.className = val;
+                                                        return;
+                                                }
+                                                throw "wrappedno2";
+                                            });
+                                    return {type: JSJS.Types.objPtr, val: wrappedIframeChild};
+                                default:
+                                    throw "nope";
+                            }
+                        }, function(cx, obj, propName, strict, val, jsval) {
+                            console.log("trying to set wrapped div attr " + propName);
+                            switch (propName) {
+                                case "compareDocumentPosition":
+                                    return;
+                                case "innerHTML":
+                                    if (val == "<iframe allowtransparency='true' frameborder='0' scrolling='no'></iframe>") {
+                                        wrapperDiv.innerHTML = val;
+                                    }
+                                    return;
+                                default:
+                                    throw "not allowed in wrapped div setter";
                             }
                         });
             }
@@ -382,12 +461,124 @@ function init() {
             returns: null});
         var ptrRemoveEventListener = JSJS.NewFunction(jsObjs.cx, wrappedRemoveEventListener, 3, "removeEventListener");
         
+        function aGetAttribute(attr) {
+            console.log("wrapped A getAttribute " + attr);
+            switch (attr) {
+                case "data-rendering":
+                case "data-count":
+                case "data-size":
+                case "data-lang":
+                case "data-text":
+                    console.log("DATA TEXT RETURNING: " + twitButDestA.getAttribute(attr));
+                case "data-align":
+                case "data-via":
+                case "data-related":
+                case "data-counturl":
+                case "data-searchlink":
+                case "data-placeid":
+                case "data-hashtags":
+                case "data-button-screen-name":
+                case "data-button-hashtag":
+                case "data-url":
+                case "data-dnt":
+                case "data-enable-new-sizing":
+                    var attrValue = twitButDestA.getAttribute(attr);
+                    var attrType = typeof(twitButDestA.getAttribute(attr));
+                    if (attrType == 'object' && attrValue == null) {
+                        return {'type': JSJS.Types.objPtr, 'val': null};
+                    } else if (attrType == 'string') {
+                        return {'type': JSJS.Types.charPtr, 'val': attrValue};
+                    }
+                    throw "wrong value!";
+                default:
+                    throw "unimplemented";
+            }
+        }
+        var wrappedAGetAttribute = JSJS.wrapFunction({
+            func: aGetAttribute,
+            args: [JSJS.Types.charPtr],
+            returns: null});
+        var ptrAGetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedAGetAttribute, 1, "getAttribute");
+        
+        function aSetAttribute(attrName, attrValue) {
+            console.log("wrapped A setAttribute " + attrName);
+            var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
+            switch(attrName) {
+                case "data-rendering":
+                    twitButDestA.setAttribute(attrName, attrValue);
+                    break;
+                default:
+                    throw "not implemented";
+            }
+        }
+        var wrappedASetAttribute = JSJS.wrapFunction({
+            func: aSetAttribute,
+            args: [JSJS.Types.charPtr, JSJS.Types.dynamicPtr],
+            returns: null});
+        var ptrASetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedASetAttribute, 1, "setAttribute");
+        
+        function divReplaceChild(newChild, oldChild) {
+            console.log("replaceChild " + oldChild + " with " + newChild);
+            assert(newChild in wrappedMap && oldChild in wrappedMap);
+            twitButContainer.replaceChild(wrappedMap[newChild], wrappedMap[oldChild]);
+        }
+        var wrappedDivReplaceChild = JSJS.wrapFunction({
+            func: divReplaceChild,
+            args: [JSJS.Types.objPtr, JSJS.Types.objPtr],
+            returns: null});
+        var ptrDivReplaceChild = JSJS.NewFunction(jsObjs.cx, wrappedDivReplaceChild, 2, "replaceChild");
+        
+        var wrappedTwitContainer = makeWrappedElement(twitButContainer,
+                function containergetter(propName) {
+                    console.log("container getter " + propName);
+                    switch (propName) {
+                        case "lang":
+                            return {'type': JSJS.Types.charPtr, 'val': twitButContainer.lang};
+                        case "parentNode":
+                            return {'type': JSJS.Types.objPtr, 'val': null};
+                        case "replaceChild":
+                            return {'type': JSJS.Types.funcPtr, 'val': ptrDivReplaceChild};
+                    }
+                    throw "not implcontainergetter";
+                });
         
         function jsQuerySelectorAll(selectors) {
             console.log("querySelectorAll " + selectors);
             switch (selectors) {
                 case "a.twitter-share-button":
-                    return [];
+                    return [[JSJS.Types.objPtr, makeWrappedElement(twitButDestA,
+                            function wrappedAgetter(propName) {
+                                console.log("wrapped A getter propname " + propName);
+                                switch (propName) {
+                                    case "getAttribute":
+                                        return {'type': JSJS.Types.funcPtr, 'val': ptrAGetAttribute};
+                                    case "setAttribute":
+                                        return {'type': JSJS.Types.funcPtr, 'val': ptrASetAttribute};
+                                    case "id":
+                                        return {'type': JSJS.Types.charPtr, 'val': twitButDestA.id};
+                                    case "href":
+                                        return {'type': JSJS.Types.charPtr, 'val': twitButDestA.href};
+                                    case "lang":
+                                        return {'type': JSJS.Types.charPtr, 'val': twitButDestA.lang};
+                                    case "className":
+                                        return {'type': JSJS.Types.charPtr, 'val': twitButDestA.className};
+                                    case "parentNode":
+                                        return {'type': JSJS.Types.objPtr, 'val': wrappedTwitContainer};
+                                    default:
+                                        throw "not implemeneted";
+                                }
+                            }, function wrappedAsetter(cx, obj, propName, strict, val, vp) {
+                                console.log("wrapped A setter propname " + propName);
+                                switch (propName) {
+                                    case "className":
+                                        twitButDestA.className = val;
+                                        return;
+                                    case "compareDocumentPosition":
+                                        return;
+                                    default:
+                                        throw "wrapped a setter oh no!";
+                                }
+                            })]];
                 default:
                     return [];
             }
@@ -458,7 +649,7 @@ function init() {
                     function jsBodyInsertBefore(newElement, referenceElement) {
                         console.log("body insertBefore");
                         if (newElement in wrappedMap && wrappedMap[newElement].tagName == "IFRAME") {
-                            document.body.insertBefore(wrappedMap[newElement], document.body.firstChild);
+                            //document.body.insertBefore(wrappedMap[newElement], document.body.firstChild);
                             return null;
                         }
                         throw "Not Implemented";
@@ -582,8 +773,10 @@ function init() {
 </script>
 </head>
 <body>
-<h1>Hello</h1>
-<a href="https://twitter.com/share" class="twitter-share-button" data-via="jterrace" data-size="large">Tweet</a>
-<h2>Hi</h2>
+<h1>js.js Twitter Button Example</h1>
+<h2>The tweet button should replace this &lt;a&gt; tag:</h2>
+<div id="twitcontainer">
+<a id="twitbuttdest" href="https://twitter.com/share" data-url="https://jterrace.github.com/js.js/twitter/" data-text="I just clicked a Twitter button created by running Twitter's script inside #js.js" class="twitter-share-button" data-via="jterrace" data-size="large">Tweet</a>
+</div>
 </body>
 </html>

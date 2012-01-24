@@ -309,7 +309,9 @@ var JSJS = {
                 outBufOffset += params['args'][i]['size'];
             }
             var retVal = params['func'].apply(this, returnVals);
-            if (params['returns'] == null) {
+            if (typeof(retVal) == 'object' && retVal != null && 'type' in retVal) {
+                retVal['type']['toJSVal'](jsval, retVal['val'], context);
+            } else if (params['returns'] == null) {
                 _memcpy(jsval, _JSVAL_VOID, 8);
             } else {
                 params['returns']['toJSVal'](jsval, retVal, context);
@@ -581,9 +583,18 @@ var JSJS = {
         arrayPtr: new function() {
             this['size'] = 4;
             this['toJSVal'] = function(jsval, val, cx) {
-                //FIXME: Assumes empty array only
-                assert(val.length == 0);
-                var jsObjPtr = _JS_NewArrayObject(cx, val.length, 0);
+                var jsvalArray = 0;
+                var numArgs = 0;
+                if (val.length > 0) {
+                    jsvalArray = allocate(val.length * 8, 'i32', ALLOC_NORMAL);
+                }
+                for (i=0; i<val.length; i++) {
+                    argType = val[i][0];
+                    argVal = val[i][1];
+                    numArgs++;
+                    argType['toJSVal'](jsvalArray + i * 8, argVal, cx);
+                }
+                var jsObjPtr = _JS_NewArrayObject(cx, numArgs, jsvalArray);
                 return _OBJECT_TO_JSVAL(jsval, jsObjPtr);
             };
         },

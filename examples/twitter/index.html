@@ -511,22 +511,21 @@ function init() {
 
         function jsWindowAddEventListener(type, listener, useCapture) {
             console.log("Window addEventListener " + type);
+            var jsvalout = JSJS.CreateJSVal(jsObjs.cx, listener, JSJS.Types.objPtr);
             if (type == "message") {
                 window.addEventListener("message", function(event) {
+                    console.log("window message received");
                     for (wrappedPtr in wrappedMap) {
                         if (wrappedMap[wrappedPtr] == event.source) {
-                            var jsvalout = Module.allocate(2, 'i32');
-                            JSJS.Types.objPtr.toJSVal(jsvalout, listener);
-                            assert(_JSVAL_IS_OBJECT(jsvalout));
+                            
                             console.log("about to call message callback");
-                            JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.double], [4.5]);
-                            //JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout);/*, 
-                                   // [JSJS.Types.objPtr], [wrapEventObject(event, wrappedPtr)]);*/
+                            JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout,
+                                    [JSJS.Types.objPtr], [wrapEventObject(event, wrappedPtr)]);
                             console.log("done calling message callback");
+                            return;
                         }
                     }
-                    console.log("window message received");
-                    throw "Not Implemented";
+                    console.log("returning because no valid message handler found");
                 });
                 return undefined;
             }

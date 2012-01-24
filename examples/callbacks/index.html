@@ -1,0 +1,68 @@
+<html>
+<head>
+<title>js.js Callbacks Testing</title>
+<script type="text/javascript" src="../../src/libjs.O2.js"></script>
+<script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+<script type="text/javascript">
+
+
+    function start_jsjs() {
+        var jsObjs = JSJS.Init();
+
+        function callbackInt(func) {
+            console.log(func);
+            var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
+            JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.i32], [55]);
+        }
+        function verifyInt(val) {
+            console.log("int val should be 55: " + val);
+            assert(val == 55);
+        }
+        var wrappedCallbackInt = JSJS.wrapFunction({
+            func : callbackInt,
+            args : [JSJS.Types.objPtr],
+            returns : null
+        });
+        var wrappedVerifyInt = JSJS.wrapFunction({
+            func : verifyInt,
+            args : [JSJS.Types.i32],
+            returns : null
+        });
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "callbackInt", wrappedCallbackInt, 1, 0);
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "verifyInt", wrappedVerifyInt, 1, 0);
+        
+        function callbackString(func) {
+            console.log(func);
+            var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
+            JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.charPtr], ["blah"]);
+        }
+        function verifyString(s) {
+            console.log("s val should be 'blah': " + s);
+            assert(s == 'blah');
+        }
+        var wrappedCallbackString = JSJS.wrapFunction({
+            func : callbackString,
+            args : [JSJS.Types.objPtr],
+            returns : null
+        });
+        var wrappedVerifyString = JSJS.wrapFunction({
+            func : verifyString,
+            args : [JSJS.Types.charPtr],
+            returns : null
+        });
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "callbackString", wrappedCallbackString, 1, 0);
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "verifyString", wrappedVerifyString, 1, 0);
+        
+        var srcTest = "callbackInt(function(x) {verifyInt(x);});" + 
+                      "callbackString(function(x) {verifyString(x);});"
+                      ;
+        JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcTest);
+    }
+
+    window.onload = start_jsjs;
+</script>
+</head>
+<body>
+    <h1>js.js Callback Testing</h1>
+</body>
+</html>

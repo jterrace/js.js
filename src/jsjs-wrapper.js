@@ -49,6 +49,11 @@ var JSJS = {
         }
         return getValue(rval, 'double');
     },
+    CreateJSVal : function CreateJSVal(cx, val, type) {
+        var jsvalout = allocate(2, 'i32');
+        type['toJSVal'](jsvalout, val, cx);
+        return jsvalout;
+    },
     DefineObject : function DefineObject(context, parent, name, clasp, proto, flags) {
         var nameStr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
         return _JS_DefineObject(context, parent, nameStr, clasp, proto, flags);
@@ -324,18 +329,10 @@ var JSJS = {
             numArgs = argTypes.length;
             var jsvalArray = allocate(numArgs * 2, 'i32', ALLOC_NORMAL);
             for (i=0; i<numArgs; i++) {
-                argTypes[i]['toJSVal'](jsvalArray + i * 8, argVals[i]);
+                argTypes[i]['toJSVal'](jsvalArray + i * 8, argVals[i], cx);
             }
         }
-        var rval = allocate(1, 'i32', ALLOC_NORMAL);
-        if (numArgs > 0) {
-        console.log(jsvalArray);
-        console.log(getValue(jsvalArray, 'i32'));
-        console.log(getValue(jsvalArray + 4, 'i32'));
-        console.log(_JSVAL_IS_DOUBLE(jsvalArray));
-        console.log(_JSVAL_TO_DOUBLE(jsvalArray));
-        throw 3;
-        }
+        var rval = allocate(2, 'i32', ALLOC_NORMAL);
         return _JS_CallFunctionValue(cx, thisobj, fval, numArgs, jsvalArray, rval);
     },
     // Initialize the document element

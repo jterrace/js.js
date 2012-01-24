@@ -42,7 +42,7 @@ var JSJS = {
         return rval;
     },
     ValueToNumber : function ValueToNumber(context, jsval) {
-        var rval = allocate(1, 'double', ALLOC_NORMAL);
+        var rval = allocate(8, 'double', ALLOC_NORMAL);
         ok = _JS_ValueToNumber(context, jsval, rval);
         if (ok == 0) {
             return null;
@@ -50,7 +50,7 @@ var JSJS = {
         return getValue(rval, 'double');
     },
     CreateJSVal : function CreateJSVal(cx, val, type) {
-        var jsvalout = allocate(2, 'i32');
+        var jsvalout = allocate(8, 'i32', ALLOC_NORMAL);
         type['toJSVal'](jsvalout, val, cx);
         return jsvalout;
     },
@@ -287,12 +287,12 @@ var JSJS = {
                 if ('numRequired' in params && params['numRequired'] == i+1) {
                     formatStr += "/";
                 }
-                allocateLengths.push(1);
+                allocateLengths.push(0);
                 allocateTypes.push(params['args'][i]['type']);
             }
             var formatStr = allocate(intArrayFromString(formatStr), 'i8', ALLOC_NORMAL);
             var outBuf = allocate(allocateLengths, allocateTypes, ALLOC_NORMAL);
-            var variadic = allocate(params['args'].length, 'i32');
+            var variadic = allocate(params['args'].length * 4, 'i32', ALLOC_NORMAL);
             var outBufOffset = outBuf;
             for (i = 0; i < params['args'].length; i++) {
                 setValue(variadic + i * 4, outBufOffset, 'i32');
@@ -327,12 +327,12 @@ var JSJS = {
         var numArgs = 0;
         if (argTypes != undefined || argVals != undefined) {
             numArgs = argTypes.length;
-            var jsvalArray = allocate(numArgs * 2, 'i32', ALLOC_NORMAL);
+            var jsvalArray = allocate(numArgs * 8, 'i32', ALLOC_NORMAL);
             for (i=0; i<numArgs; i++) {
                 argTypes[i]['toJSVal'](jsvalArray + i * 8, argVals[i], cx);
             }
         }
-        var rval = allocate(2, 'i32', ALLOC_NORMAL);
+        var rval = allocate(8, 'i32', ALLOC_NORMAL);
         return _JS_CallFunctionValue(cx, thisobj, fval, numArgs, jsvalArray, rval);
     },
     // Initialize the document element
@@ -504,7 +504,7 @@ var JSJS = {
                     return v;
                 };
                 this['toPtr'] = function(val) {
-                    var ptr = allocate(1, type, ALLOC_NORMAL);
+                    var ptr = allocate(0, type, ALLOC_NORMAL);
                     setValue(ptr, val, type);
                     return ptr;
                 };
@@ -521,7 +521,7 @@ var JSJS = {
             this['formatStr'] = 'f';
             this['toPtr'] = function(func) {
                 var funcPosition = FUNCTION_TABLE.push(func) - 1;
-                var ptr = allocate(1, 'i32', ALLOC_NORMAL);
+                var ptr = allocate(4, 'i32', ALLOC_NORMAL);
                 setValue(ptr, funcPosition, 'i32');
             };
             this['setPtr'] = function(val, ptr) {

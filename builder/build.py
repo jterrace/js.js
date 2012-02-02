@@ -258,8 +258,8 @@ def compile(**kwargs):
     filter_file(jsinterp_cpp_path, compile_filters.jsinterp_cpp_filters)
     
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
-    libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a.bc")
-    make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
+    libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a")
+    make_success = os.path.exists(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
     
     if not make_success:
         util.run_command(["make", "-C", "config"], cwd=js_src_dir)
@@ -281,7 +281,7 @@ def compile(**kwargs):
         
         util.run_command(["make"], cwd=js_src_dir, added_env={"EMCC_DEBUG": "1"})
     
-    make_success = util.is_exe(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
+    make_success = os.path.exists(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
     if not make_success:
         sys.stderr.write("Failed to build spidermonkey. Exiting.\n")
         sys.exit(1)

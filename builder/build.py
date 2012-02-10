@@ -11,6 +11,7 @@ import shutil
 import filecmp
 import tempfile
 import tarfile
+import subprocess
 
 import conf
 import jsjs.util as util
@@ -49,6 +50,8 @@ def get_llvm_link_path():
     return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-link")
 def get_llvm_dis_path():
     return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-dis")
+def get_llvm_ar_path():
+    return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-ar")
 def get_v8_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.V8_DIR, "d8")
 def get_spidermonkey_path():
@@ -258,8 +261,8 @@ def compile(**kwargs):
     filter_file(jsinterp_cpp_path, compile_filters.jsinterp_cpp_filters)
     
     js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
-    libjs_static_bc_out = util.abspath_join(js_src_dir, "./libjs_static.a")
-    make_success = os.path.exists(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
+    libjs_static_out = util.abspath_join(js_src_dir, "./libjs_static.a")
+    make_success = os.path.exists(libjs_static_out) and os.path.exists(js_shell_bc_out)
     
     if not make_success:
         util.run_command(["make", "-C", "config"], cwd=js_src_dir)
@@ -281,39 +284,29 @@ def compile(**kwargs):
         
         util.run_command(["make"], cwd=js_src_dir, added_env={"EMCC_DEBUG": "1"})
     
-    make_success = os.path.exists(libjs_static_bc_out) and os.path.exists(js_shell_bc_out)
+    make_success = os.path.exists(libjs_static_out) and os.path.exists(js_shell_bc_out)
     if not make_success:
         sys.stderr.write("Failed to build spidermonkey. Exiting.\n")
         sys.exit(1)
-        
-    js_bc = util.abspath_join(BUILD_DIR_ABS, "./js.bc")
-    libjs_bc = util.abspath_join(BUILD_DIR_ABS, "./libjs.bc")
     
-    try:
-        same_files = filecmp.cmp(js_shell_bc_out, js_bc) and filecmp.cmp(libjs_static_bc_out, libjs_bc)
-    except OSError:
-        same_files = False
-    
-    ranprev = False
-    if not same_files:
-        shutil.copyfile(js_shell_bc_out, js_bc)
-        shutil.copyfile(libjs_static_bc_out, libjs_bc)
-        ranprev = True
-    
+    o_files = subprocess.check_output([get_llvm_ar_path(), 't', libjs_static_out]).strip().split("\n")
+
     js_combined_bc = util.abspath_join(BUILD_DIR_ABS, "./js_combined.bc")
-    if ranprev or not os.path.isfile(js_combined_bc):
-        util.run_command([get_llvm_link_path(), '-o', js_combined_bc, libjs_bc, js_bc])
-        ranprev = True
-    
     js_combined_ll = util.abspath_join(BUILD_DIR_ABS, "./js_combined.ll")
-    if ranprev or not os.path.isfile(js_combined_ll):
-        util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', js_combined_ll, js_combined_bc])
-        ranprev = True
-    
     libjs_ll = util.abspath_join(BUILD_DIR_ABS, "./libjs.ll")
-    if ranprev or not os.path.isfile(libjs_ll):
-        util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', libjs_ll, libjs_bc])
-        ranprev = True
+    libjs_bc = util.abspath_join(BUILD_DIR_ABS, "./libjs.bc")
+
+    command = [get_llvm_link_path(), '-o', libjs_bc]
+    command.extend(o_files)
+    util.run_command(command, cwd=js_src_dir)
+    util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', libjs_ll, libjs_bc])
+
+    js_shell_o_out = util.abspath_join(js_src_dir, "./shell/js.o")
+    jsheaptools_o = util.abspath_join(js_src_dir, "./shell/jsheaptools.o")
+    jsoptparse_o = util.abspath_join(js_src_dir, "./shell/jsoptparse.o")
+    jsworkers_o = util.abspath_join(js_src_dir, "./shell/jsworkers.o")
+    util.run_command([get_llvm_link_path(), '-o', js_combined_bc, libjs_bc, js_shell_o_out, jsheaptools_o, jsoptparse_o, jsworkers_o])
+    util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', js_combined_ll, js_combined_bc])
     
     if not os.path.isfile(js_combined_ll):
         sys.stderr.write("Failed to build combined LLVM file.\n")

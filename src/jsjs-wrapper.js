@@ -146,7 +146,9 @@ var JSJS = {
     Init : function Init(params) {
         // Creates a new runtime with 8MB of memory
         var rt = JSJS.NewRuntime(8 * 1024 * 1024);
+        console.log("rt " + rt);
         var cx = JSJS.NewContext(rt, 8192);
+        console.log("cx " + cx);
 
         // See documentation for explanation -- needed for most scripts
         var JSOPTION_VAROBJFIX = 1 << 2;
@@ -192,12 +194,14 @@ var JSJS = {
                                                 JSJS['EnumerateStub'],
                                                 global_resolver,
                                                 JSJS['ConvertStub'],
-                                                JSJS['FinalizeStub'])
+                                                JSJS['FinalizeStub']);
         
         var global = JSJS.NewCompartmentAndGlobalObject(cx, _GLOBAL_CLASS, 0);
+        console.log("global " + global);
 
         // Initializes the standard javascript global objects like Array, Date, etc
-        JSJS.InitStandardClasses(cx, global);
+        var init_standard = JSJS.InitStandardClasses(cx, global);
+        console.log("init standard classes " + init_standard);
 
         return {
             'rt' : rt,
@@ -636,16 +640,24 @@ JSJS['NewCompartmentAndGlobalObject'] = JSJS.NewCompartmentAndGlobalObject;
 JSJS['InitStandardClasses'] = JSJS.InitStandardClasses;
 JSJS['EvaluateScript'] = JSJS.EvaluateScript;
 JSJS['ValueToNumber'] = JSJS.ValueToNumber;
+JSJS['CreateJSVal'] = JSJS.CreateJSVal;
 JSJS['DefineObject'] = JSJS.DefineObject;
+JSJS['NewObject'] = JSJS.NewObject;
 JSJS['DefineFunction'] = JSJS.DefineFunction;
 JSJS['DefineProperty'] = JSJS.DefineProperty;
+JSJS['SetProperty'] = JSJS.SetProperty;
+JSJS['GetProperty'] = JSJS.GetProperty;
 JSJS['parseUTF16'] = JSJS.parseUTF16;
+JSJS['CreateClass'] = JSJS.CreateClass
 JSJS['Init'] = JSJS.Init;
 JSJS['End'] = JSJS.End;
 JSJS['identifyConvertValue'] = JSJS.identifyConvertValue;
 JSJS['wrapFunction'] = JSJS.wrapFunction;
 JSJS['wrapGetter'] = JSJS.wrapGetter;
 JSJS['wrapSetter'] = JSJS.wrapSetter;
+JSJS['wrapResolver'] = JSJS.wrapResolver;
+JSJS['NewFunction'] = JSJS.NewFunction;
+JSJS['CallFunctionValue'] = JSJS.CallFunctionValue;
 JSJS['InitDocument'] = JSJS.InitDocument;
 JSJS['InitWindow'] = JSJS.InitWindow;
 JSJS['SetLock'] = JSJS.SetLock;
@@ -666,6 +678,9 @@ JSJS.Types['primitive'] = JSJS.Types.primitive;
 JSJS.Types['funcPtr'] = JSJS.Types.funcPtr;
 JSJS.Types['charPtr'] = JSJS.Types.charPtr;
 JSJS.Types['struct'] = JSJS.Types.struct;
+JSJS.Types['objPtr'] = JSJS.Types.objPtr;
+JSJS.Types['dynamicPtr'] = JSJS.Types.dynamicPtr;
+JSJS.Types['arrayPtr'] = JSJS.Types.arrayPtr;
     
 JSJS.Types['bool'] = JSJS.Types.primitive('i1', 'b', _BOOLEAN_TO_JSVAL);
 JSJS.Types['i16'] = JSJS.Types.primitive('i16', 'c', _INT_TO_JSVAL);

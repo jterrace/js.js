@@ -258,7 +258,7 @@ __twttrlr(function(using, provide, loadrunner, define) {
         function d(a) {
             var c = [];
             for (var d in a) a[d] !== null && typeof a[d] != "undefined" && c.push(b(d) + "=" + b(a[d]));
-            return c.sort().join("&")
+            return c.join("&")
         }
         function e(a) {
             var b = {},
@@ -425,23 +425,23 @@ __twttrlr(function(using, provide, loadrunner, define) {
                 },
                 k = {
                     ko: {
-                        "%{followers_count} followers": "%{followers_count}명의 팔로워",
-                        "100K+": "100만 이상",
-                        "10k unit": "만 단위",
-                        Follow: "팔로우",
-                        "Follow %{screen_name}": "%{screen_name} 팔로우하기",
-                        K: "천",
-                        M: "백만",
-                        Tweet: "트윗",
-                        "Tweet %{hashtag}": "%{hashtag} 관련 트윗하기",
-                        "Tweet to %{name}": "%{name}님에게 트윗하기"
+                        "%{followers_count} followers": "%{followers_count} ",
+                        "100K+": "100 ",
+                        "10k unit": " ",
+                        Follow: "",
+                        "Follow %{screen_name}": "%{screen_name} ",
+                        K: "",
+                        M: "",
+                        Tweet: "",
+                        "Tweet %{hashtag}": "%{hashtag}  ",
+                        "Tweet to %{name}": "%{name} "
                     },
                     no: {
-                        "%{followers_count} followers": "%{followers_count} føgere",
+                        "%{followers_count} followers": "%{followers_count} fgere",
                         "100K+": "100K+",
                         "10k unit": "10k ",
-                        Follow: "Følg",
-                        "Follow %{screen_name}": "Følg %{screen_name}",
+                        Follow: "Flg",
+                        "Follow %{screen_name}": "Flg %{screen_name}",
                         K: "K",
                         M: "M",
                         Tweet: "Tweet",
@@ -461,11 +461,11 @@ __twttrlr(function(using, provide, loadrunner, define) {
                         "Tweet to %{name}": "Mag-Tweet kay %{name}"
                     },
                     sv: {
-                        "%{followers_count} followers": "%{followers_count} följare",
+                        "%{followers_count} followers": "%{followers_count} fljare",
                         "100K+": "100K+",
                         "10k unit": "10k",
-                        Follow: "Följ",
-                        "Follow %{screen_name}": "Följ %{screen_name}",
+                        Follow: "Flj",
+                        "Follow %{screen_name}": "Flj %{screen_name}",
                         K: "K",
                         M: "M",
                         Tweet: "Tweeta",
@@ -497,47 +497,47 @@ __twttrlr(function(using, provide, loadrunner, define) {
                         "Tweet to %{name}": "Twittear a %{name}"
                     },
                     hu: {
-                        "%{followers_count} followers": "%{followers_count} követő",
+                        "%{followers_count} followers": "%{followers_count} kvet",
                         "100K+": "100E+",
                         "10k unit": "10E+",
-                        Follow: "Követés",
-                        "Follow %{screen_name}": "%{screen_name} követése",
+                        Follow: "Kvets",
+                        "Follow %{screen_name}": "%{screen_name} kvetse",
                         K: "E",
                         M: "M",
                         Tweet: "Tweet",
-                        "Tweet %{hashtag}": "%{hashtag} tweetelése",
-                        "Tweet to %{name}": "Tweet küldése neki: %{name}"
+                        "Tweet %{hashtag}": "%{hashtag} tweetelse",
+                        "Tweet to %{name}": "Tweet kldse neki: %{name}"
                     },
                     hi: {
-                        "%{followers_count} followers": "%{followers_count} फ़ॉलोअर्स",
-                        "100K+": "१०० हजार+",
-                        "10k unit": "१० हजार इकाईयां",
-                        Follow: "फ़ॉलो",
-                        "Follow %{screen_name}": "%{screen_name} को फ़ॉलो करें",
-                        K: "हजार",
-                        M: "१० लाख",
-                        Tweet: "ट्वीट",
-                        "Tweet %{hashtag}": "ट्वीट %{hashtag}",
-                        "Tweet to %{name}": "%{name} को ट्वीट करें"
+                        "%{followers_count} followers": "%{followers_count} ",
+                        "100K+": " +",
+                        "10k unit": "  ",
+                        Follow: "",
+                        "Follow %{screen_name}": "%{screen_name}   ",
+                        K: "",
+                        M: " ",
+                        Tweet: "",
+                        "Tweet %{hashtag}": " %{hashtag}",
+                        "Tweet to %{name}": "%{name}   "
                     },
                     ja: {
-                        "%{followers_count} followers": "%{followers_count}人のフォロワー",
-                        "100K+": "10万以上",
-                        "10k unit": "万",
-                        Follow: "フォローする",
-                        "Follow %{screen_name}": "%{screen_name}をフォロー",
+                        "%{followers_count} followers": "%{followers_count}",
+                        "100K+": "10",
+                        "10k unit": "",
+                        Follow: "",
+                        "Follow %{screen_name}": "%{screen_name}",
                         K: "K",
                         M: "M",
-                        Tweet: "ツイート",
-                        "Tweet %{hashtag}": "%{hashtag} をツイートする",
-                        "Tweet to %{name}": "%{name}へツイートする"
+                        Tweet: "",
+                        "Tweet %{hashtag}": "%{hashtag} ",
+                        "Tweet to %{name}": "%{name}"
                     },
                     da: {
-                        "%{followers_count} followers": "%{followers_count} følgere",
+                        "%{followers_count} followers": "%{followers_count} flgere",
                         "100K+": "100K+",
                         "10k unit": "10k enhed",
-                        Follow: "Følg",
-                        "Follow %{screen_name}": "Følg %{screen_name}",
+                        Follow: "Flg",
+                        "Follow %{screen_name}": "Flg %{screen_name}",
                         K: "K",
                         M: "M",
                         Tweet: "Tweet",
@@ -545,28 +545,28 @@ __twttrlr(function(using, provide, loadrunner, define) {
                         "Tweet to %{name}": "Tweet til %{name}"
                     },
                     ur: {
-                        "%{followers_count} followers": "%{followers_count} فالورز",
-                        "100K+": "1 لاکھ+",
-                        "10k unit": "دس ہزار یونٹ",
-                        Follow: "فالو کریں",
-                        "Follow %{screen_name}": "%{screen_name} کو فالو کریں",
-                        K: "ہزار",
-                        M: "ملین",
-                        Tweet: "ٹویٹ کریں",
-                        "Tweet %{hashtag}": "ٹویٹ کریں %{hashtag}",
-                        "Tweet to %{name}": "%{name} کو ٹویٹ کریں"
+                        "%{followers_count} followers": "%{followers_count} ",
+                        "100K+": "1 +",
+                        "10k unit": "  ",
+                        Follow: " ",
+                        "Follow %{screen_name}": "%{screen_name}   ",
+                        K: "",
+                        M: "",
+                        Tweet: " ",
+                        "Tweet %{hashtag}": "  %{hashtag}",
+                        "Tweet to %{name}": "%{name}   "
                     },
                     he: {
-                        "%{followers_count} followers": "%{followers_count} עוקבים",
-                        "100K+": "מאות אלפים",
-                        "10k unit": "עשרות אלפים",
-                        Follow: "מעקב",
-                        "Follow %{screen_name}": "לעקוב אחר %{screen_name}",
-                        K: "אלף",
-                        M: "מיליון",
-                        Tweet: "ציוץ",
-                        "Tweet %{hashtag}": "צייצו %{hashtag}",
-                        "Tweet to %{name}": "ציוץ אל %{name}"
+                        "%{followers_count} followers": "%{followers_count} ",
+                        "100K+": " ",
+                        "10k unit": " ",
+                        Follow: "",
+                        "Follow %{screen_name}": "  %{screen_name}",
+                        K: "",
+                        M: "",
+                        Tweet: "",
+                        "Tweet %{hashtag}": " %{hashtag}",
+                        "Tweet to %{name}": "  %{name}"
                     },
                     pt: {
                         "%{followers_count} followers": "%{followers_count} seguidores",
@@ -581,57 +581,57 @@ __twttrlr(function(using, provide, loadrunner, define) {
                         "Tweet to %{name}": "Tweetar para %{name}"
                     },
                     ru: {
-                        "%{followers_count} followers": "Читатели: %{followers_count} ",
-                        "100K+": "100 тыс.+",
-                        "10k unit": "блок 10k",
-                        Follow: "Читать",
-                        "Follow %{screen_name}": "Читать %{screen_name}",
-                        K: "тыс.",
-                        M: "млн.",
-                        Tweet: "Твитнуть",
-                        "Tweet %{hashtag}": "Твитнуть %{hashtag}",
-                        "Tweet to %{name}": "Твитнуть %{name}"
+                        "%{followers_count} followers": ": %{followers_count} ",
+                        "100K+": "100 .+",
+                        "10k unit": " 10k",
+                        Follow: "",
+                        "Follow %{screen_name}": " %{screen_name}",
+                        K: ".",
+                        M: ".",
+                        Tweet: "",
+                        "Tweet %{hashtag}": " %{hashtag}",
+                        "Tweet to %{name}": " %{name}"
                     },
                     "zh-cn": {
-                        "%{followers_count} followers": "%{followers_count} 关注者",
-                        "100K+": "10万+",
-                        "10k unit": "1万单元",
-                        Follow: "关注",
-                        "Follow %{screen_name}": "关注 %{screen_name}",
-                        K: "千",
-                        M: "百万",
-                        Tweet: "发推",
-                        "Tweet %{hashtag}": "以 %{hashtag} 发推",
-                        "Tweet to %{name}": "发推给 %{name}"
+                        "%{followers_count} followers": "%{followers_count} ",
+                        "100K+": "10+",
+                        "10k unit": "1",
+                        Follow: "",
+                        "Follow %{screen_name}": " %{screen_name}",
+                        K: "",
+                        M: "",
+                        Tweet: "",
+                        "Tweet %{hashtag}": " %{hashtag} ",
+                        "Tweet to %{name}": " %{name}"
                     },
                     "zh-tw": {
-                        "%{followers_count} followers": "%{followers_count} 位跟隨者",
-                        "100K+": "超過十萬",
-                        "10k unit": "1萬 單位",
-                        Follow: "跟隨",
-                        "Follow %{screen_name}": "跟隨 %{screen_name}",
-                        K: "千",
-                        M: "百萬",
-                        Tweet: "推文",
-                        "Tweet %{hashtag}": "推文%{hashtag}",
-                        "Tweet to %{name}": "推文給%{name}"
+                        "%{followers_count} followers": "%{followers_count} ",
+                        "100K+": "",
+                        "10k unit": "1 ",
+                        Follow: "",
+                        "Follow %{screen_name}": " %{screen_name}",
+                        K: "",
+                        M: "",
+                        Tweet: "",
+                        "Tweet %{hashtag}": "%{hashtag}",
+                        "Tweet to %{name}": "%{name}"
                     },
                     ar: {
-                        "%{followers_count} followers": "عدد المتابعين %{followers_count}",
-                        "100K+": "+100 ألف",
-                        "10k unit": "10 آلاف وحدة",
-                        Follow: "تابع",
-                        "Follow %{screen_name}": "تابع %{screen_name}",
-                        K: "ألف",
-                        M: "مليون",
-                        Tweet: "غرِّد",
-                        "Tweet %{hashtag}": "غرِّد %{hashtag}",
-                        "Tweet to %{name}": "غرِّد لـ %{name}"
+                        "%{followers_count} followers": "  %{followers_count}",
+                        "100K+": "+100 ",
+                        "10k unit": "10  ",
+                        Follow: "",
+                        "Follow %{screen_name}": " %{screen_name}",
+                        K: "",
+                        M: "",
+                        Tweet: "",
+                        "Tweet %{hashtag}": " %{hashtag}",
+                        "Tweet to %{name}": "  %{name}"
                     },
                     it: {
                         "%{followers_count} followers": "%{followers_count} follower",
                         "100K+": "100K+",
-                        "10k unit": "10k unità",
+                        "10k unit": "10k unit",
                         Follow: "Segui",
                         "Follow %{screen_name}": "Segui %{screen_name}",
                         K: "K",
@@ -653,7 +653,7 @@ __twttrlr(function(using, provide, loadrunner, define) {
                         "Tweet to %{name}": "Tweet ke %{name}"
                     },
                     tr: {
-                        "%{followers_count} followers": "%{followers_count} takipçi",
+                        "%{followers_count} followers": "%{followers_count} takipi",
                         "100K+": "+100 bin",
                         "10k unit": "10 bin birim",
                         Follow: "Takip et",
@@ -665,52 +665,52 @@ __twttrlr(function(using, provide, loadrunner, define) {
                         "Tweet to %{name}": "Tweetle: %{name}"
                     },
                     fr: {
-                        "%{followers_count} followers": "%{followers_count} abonnés",
+                        "%{followers_count} followers": "%{followers_count} abonns",
                         "100K+": "100K+",
-                        "10k unit": "unité de 10k",
+                        "10k unit": "unit de 10k",
                         Follow: "Suivre",
                         "Follow %{screen_name}": "Suivre %{screen_name}",
                         K: "K",
                         M: "M",
                         Tweet: "Tweeter",
                         "Tweet %{hashtag}": "Tweeter %{hashtag}",
-                        "Tweet to %{name}": "Tweeter à %{name}"
+                        "Tweet to %{name}": "Tweeter  %{name}"
                     },
                     fi: {
                         "%{followers_count} followers": "%{followers_count} seuraajaa",
                         "100K+": "100 000+",
-                        "10k unit": "10 000 yksikköä",
+                        "10k unit": "10 000 yksikk",
                         Follow: "Seuraa",
-                        "Follow %{screen_name}": "Seuraa käyttäjää %{screen_name}",
+                        "Follow %{screen_name}": "Seuraa kyttj %{screen_name}",
                         K: "tuhatta",
                         M: "milj.",
                         Tweet: "Twiittaa",
                         "Tweet %{hashtag}": "Twiittaa %{hashtag}",
-                        "Tweet to %{name}": "Twiittaa käyttäjälle %{name}"
+                        "Tweet to %{name}": "Twiittaa kyttjlle %{name}"
                     },
                     fa: {
-                        "%{followers_count} followers": "%{followers_count} دنبال‌کننده",
-                        "100K+": ">۱۰۰هزار",
-                        "10k unit": "۱۰هزار واحد",
-                        Follow: "دنبال کردن",
-                        "Follow %{screen_name}": "دنبال کردن %{screen_name}",
-                        K: "هزار",
-                        M: "میلیون",
-                        Tweet: "توییت",
-                        "Tweet %{hashtag}": "توییت کردن %{hashtag}",
-                        "Tweet to %{name}": "به %{name} توییت کنید"
+                        "%{followers_count} followers": "%{followers_count} ",
+                        "100K+": ">",
+                        "10k unit": " ",
+                        Follow: " ",
+                        "Follow %{screen_name}": "  %{screen_name}",
+                        K: "",
+                        M: "",
+                        Tweet: "",
+                        "Tweet %{hashtag}": "  %{hashtag}",
+                        "Tweet to %{name}": " %{name}  "
                     },
                     th: {
-                        "%{followers_count} followers": "%{followers_count} ผู้ติดตาม",
-                        "100K+": "100พัน+",
-                        "10k unit": "หน่วย 10พัน",
-                        Follow: "ติดตาม",
-                        "Follow %{screen_name}": "ติดตาม %{screen_name}",
-                        K: "พัน",
-                        M: "ล้าน",
-                        Tweet: "ทวีต",
-                        "Tweet %{hashtag}": "ทวีต %{hashtag}",
-                        "Tweet to %{name}": "ทวีตถึง %{name}"
+                        "%{followers_count} followers": "%{followers_count} ",
+                        "100K+": "100+",
+                        "10k unit": " 10",
+                        Follow: "",
+                        "Follow %{screen_name}": " %{screen_name}",
+                        K: "",
+                        M: "",
+                        Tweet: "",
+                        "Tweet %{hashtag}": " %{hashtag}",
+                        "Tweet to %{name}": " %{name}"
                     },
                     msa: {
                         "%{followers_count} followers": "%{followers_count} pengikut",
@@ -725,7 +725,7 @@ __twttrlr(function(using, provide, loadrunner, define) {
                         "Tweet to %{name}": "Tweet kepada %{name}"
                     },
                     pl: {
-                        "%{followers_count} followers": "%{followers_count} obserwujących",
+                        "%{followers_count} followers": "%{followers_count} obserwujcych",
                         "100K+": "100 tys.+",
                         "10k unit": "10 tys.",
                         Follow: "Obserwuj",
@@ -1380,6 +1380,7 @@ __twttrlr(function(using, provide, loadrunner, define) {
                         dnt: this.dnt,
                         _: +(new Date)
                     };
+                    
                     return b.compact(a), d.encode(a)
                 },
                 height: function() {

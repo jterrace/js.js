@@ -41,6 +41,21 @@ var JSJS = {
         }
         return rval;
     },
+    CompileScript : function CompileScript(context, global, source, filename, lineno) {
+        var sourcePtr = allocate(intArrayFromString(source), 'i8', ALLOC_STACK);
+        filename = allocate(intArrayFromString(filename ? filename : "undefined"), 'i8', ALLOC_STACK);
+        lineno = lineno ? lineno : 0;
+        var rval = _JS_CompileScript(context, global, sourcePtr, source.length, filename, lineno);
+        return rval;
+    },
+    ExecuteScript : function ExecuteScript(context, global, compiledScript) {
+        var rval = allocate(8, 'i8', ALLOC_NORMAL);
+        var ok = _JS_ExecuteScript(context, global, compiledScript, rval);
+        if (ok == 0) {
+            return null;
+        }
+        return rval;
+    },
     ValueToNumber : function ValueToNumber(context, jsval) {
         var rval = allocate(8, 'double', ALLOC_NORMAL);
         ok = _JS_ValueToNumber(context, jsval, rval);
@@ -216,23 +231,23 @@ var JSJS = {
     },
     // Give this function a jsval and it will return the real thing back to you
     identifyConvertValue : function identifyConvertValue(cx, val) {
-        if(_JSVAL_IS_STRING(val)) { // Strings
-           var cp = _JSVAL_TO_STRING(val);
+        if(_JSVAL_IS_STRING(JSJS._0(val), JSJS._1(val))) { // Strings
+           var cp = _JSVAL_TO_STRING(JSJS._0(val), JSJS._1(val));
            cp = _JS_GetStringCharsZ(cx, cp); 
            cp = JSJS.parseUTF16(cp);
            return cp;
          }
-         else if(_JSVAL_IS_NULL(val) || _JSVAL_IS_VOID(val)) { // Undefs
+         else if(_JSVAL_IS_NULL(JSJS._0(val), JSJS._1(val)) || _JSVAL_IS_VOID(JSJS._0(val), JSJS._1(val))) { // Undefs
            return 0;
          }
-         else if(_JSVAL_IS_INT(val)) { // Ints
-           return (_JSVAL_TO_INT(val));
-         } else if(_JSVAL_IS_DOUBLE(val)) { // Doubles
-           return (_JSVAL_TO_DOUBLE(val));
-         } else if(_JSVAL_IS_BOOLEAN(val)) { // Boolean
-           return _JSVAL_TO_BOOLEAN(val) == 1 ? true : false; 
-         } else if(_JSVAL_IS_OBJECT(val)) { // Objects
-           return (_JSVAL_TO_OBJECT(val));
+         else if(_JSVAL_IS_INT(JSJS._0(val), JSJS._1(val))) { // Ints
+           return (_JSVAL_TO_INT(JSJS._0(val), JSJS._1(val)));
+         } else if(_JSVAL_IS_DOUBLE(JSJS._0(val), JSJS._1(val))) { // Doubles
+           return (_JSVAL_TO_DOUBLE(JSJS._0(val), JSJS._1(val)));
+         } else if(_JSVAL_IS_BOOLEAN(JSJS._0(val), JSJS._1(val))) { // Boolean
+           return _JSVAL_TO_BOOLEAN(JSJS._0(val), JSJS._1(val)) == 1 ? true : false; 
+         } else if(_JSVAL_IS_OBJECT(JSJS._0(val), JSJS._1(val))) { // Objects
+           return (_JSVAL_TO_OBJECT(JSJS._0(val), JSJS._1(val)));
          }
          return false;
     },
@@ -494,6 +509,12 @@ var JSJS = {
     LockElement : function(obj) {
       JSJS.SetLock(obj, 'locked');
     },
+    _0: function(val) {
+        return HEAP32[val >> 2];
+    },
+    _1: function(val) {
+        return HEAP32[val + 4 >> 2];
+    },
     Types : {
         primitive : function(type, formatStr, jsValFunc) {
             return new function() {
@@ -515,6 +536,8 @@ var JSJS = {
                     return ptr;
                 };
                 this['toJSVal'] = function(jsval, val) {
+                    //console.log('toJSVal');
+                    //console.log(jsValFunc);
                     return jsValFunc(jsval, val);
                 };
                 this['setPtr'] = function(val, ptr) {
@@ -569,7 +592,7 @@ var JSJS = {
               return _OBJECT_TO_JSVAL(jsval, val)
             };
             this['fromPtr'] = function(ptr) {
-                return _JSVAL_TO_OBJECT(ptr);
+                return _JSVAL_TO_OBJECT(JSJS._0(ptr), JSJS._1(ptr));
             };
             this['setPtr'] = function(val, ptr) {
                 setValue(ptr, val, 'i32');
@@ -638,7 +661,9 @@ JSJS['SetVersion'] = JSJS.SetVersion;
 JSJS['SetErrorReporter'] = JSJS.SetErrorReporter;
 JSJS['NewCompartmentAndGlobalObject'] = JSJS.NewCompartmentAndGlobalObject;
 JSJS['InitStandardClasses'] = JSJS.InitStandardClasses;
+JSJS['CompileScript'] = JSJS.CompileScript;
 JSJS['EvaluateScript'] = JSJS.EvaluateScript;
+JSJS['ExecuteScript'] = JSJS.ExecuteScript;
 JSJS['ValueToNumber'] = JSJS.ValueToNumber;
 JSJS['CreateJSVal'] = JSJS.CreateJSVal;
 JSJS['DefineObject'] = JSJS.DefineObject;
@@ -663,6 +688,8 @@ JSJS['InitWindow'] = JSJS.InitWindow;
 JSJS['SetLock'] = JSJS.SetLock;
 JSJS['UnlockElement'] = JSJS.UnlockElement;
 JSJS['LockElement'] = JSJS.LockElement;
+JSJS['_0'] = JSJS._0;
+JSJS['_1'] = JSJS._1;
 
 JSJS['JSCLASS_GLOBAL_FLAGS'] = 292613;
 JSJS['PropertyStub'] = FUNCTION_TABLE.indexOf(_JS_PropertyStub);
@@ -688,3 +715,4 @@ JSJS.Types['i32'] = JSJS.Types.primitive('i32', 'i', _INT_TO_JSVAL);
 JSJS.Types['double'] = JSJS.Types.primitive('double', 'd', _DOUBLE_TO_JSVAL);
 JSJS.Types['JSFunctionSpec'] = JSJS.Types.struct(JSJS.Types['charPtr'],
 JSJS.Types['funcPtr'], JSJS.Types['i16'], JSJS.Types['i16']);
+

@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>js.js Callbacks Testing</title>
-<script type="text/javascript" src="../../src/libjs.O2.js"></script>
+<script type="text/javascript" src="../../src/libjs.O1.js"></script>
 <script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
 <script type="text/javascript">
 
@@ -12,13 +12,15 @@
         // 1 int
         
         function callbackInt(func) {
-            console.log(func);
+            console.log("callbackInt");
             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.i32], [55]);
         }
         function verifyInt(val) {
+            console.log("verifyInt");
             console.log("int val should be 55: " + val);
             assert(val == 55);
+            return 55;
         }
         var wrappedCallbackInt = JSJS.wrapFunction({
             func : callbackInt,
@@ -28,7 +30,7 @@
         var wrappedVerifyInt = JSJS.wrapFunction({
             func : verifyInt,
             args : [JSJS.Types.i32],
-            returns : null
+            returns : JSJS.Types.i32
         });
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "callbackInt", wrappedCallbackInt, 1, 0);
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "verifyInt", wrappedVerifyInt, 1, 0);
@@ -38,13 +40,16 @@
         // 1 string 
         
         function callbackString(func) {
+            console.log("callbackString");
             console.log(func);
             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.charPtr], ["blah"]);
         }
         function verifyString(s) {
+            console.log("verifyString");
             console.log("s val should be 'blah': " + s);
             assert(s == 'blah');
+            return "blah";
         }
         var wrappedCallbackString = JSJS.wrapFunction({
             func : callbackString,
@@ -54,7 +59,7 @@
         var wrappedVerifyString = JSJS.wrapFunction({
             func : verifyString,
             args : [JSJS.Types.charPtr],
-            returns : null
+            returns : JSJS.Types.charPtr
         });
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "callbackString", wrappedCallbackString, 1, 0);
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "verifyString", wrappedVerifyString, 1, 0);
@@ -83,11 +88,13 @@
         var jsObj = JSJS.NewObject(jsObjs.cx, jsObjClass, 0, 0);
         
         function callbackObject(func) {
+            console.log("callbackObject");
             console.log(func);
             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.objPtr], [jsObj]);
         }
         function verifyObject(o, b) {
+            console.log("verifyObject");
             console.log("obj val should be " + jsObj + ": " + o);
             assert(o == jsObj);
             console.log("obj bool should be 'true': " + b);
@@ -106,8 +113,8 @@
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "callbackObject", wrappedCallbackObject, 1, 0);
         JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "verifyObject", wrappedVerifyObject, 2, 0);
         
-        var srcTest = "callbackInt(function(x) {verifyInt(x);});" + 
-                      "callbackString(function(x) {verifyString(x);});" + 
+        var srcTest = "callbackInt(function(x) { verifyInt(verifyInt(x)); });" + 
+                      "callbackString(function(x) { verifyString(verifyString(x)); });" + 
                       "callbackObject(function(x) {verifyObject(x, x.tester == 'hello');})"
                       ;
         JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcTest);

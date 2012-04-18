@@ -1,13 +1,13 @@
 <html>
 <head>
 <title>js.js Twitter Button</title>
-<script type="text/javascript" src="../../src/libjs.O2.js"></script>
+<script type="text/javascript" src="../../src/libjs.O1.js"></script>
 <script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
 <script type="text/javascript">
 
 function init() {
    var xhr = new XMLHttpRequest();
-   xhr.open('GET', 'widgets.js', false); 
+   xhr.open('GET', 'widgets.ascii.js', false); 
    xhr.send(null);
    if (xhr.status != 200) {
        throw("Failed to get JS for twitter");
@@ -256,9 +256,7 @@ function init() {
                     console.log("wrapped Iframe addEventListener " + type);
                     if (type == "load") {
                         wrappedElem.addEventListener("load", function() {
-                            var jsvalout = Module.allocate(2, 'i32');
-                            _OBJECT_TO_JSVAL(jsvalout, listener);
-                            assert(_JSVAL_IS_OBJECT(jsvalout));
+                            var jsvalout = JSJS.CreateJSVal(jsObjs.cx, listener, JSJS.Types.objPtr);
                             console.log("about to call iframe callback");
                             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout);
                             console.log("finished calling iframe load");
@@ -339,6 +337,49 @@ function init() {
                                     };
                                     break;
                             }
+                        });
+            } else if (elemName == "span") {
+                var wrapperSpan = document.createElement("span");
+                
+                return makeWrappedElement(wrapperSpan,
+                        function(propName) {
+                            console.log("wrapped span getter " + propName);
+                          
+                            function spanSetAttribute(attrName, attrValue) {
+                                console.log("span setAttribute " + attrName);
+                                var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
+                                switch(attrName) {
+                                    case "style":
+                                        wrapperSpan.setAttribute(attrName, attrConverted);
+                                        break;
+                                    default:
+                                        throw "not implemented span setattribute";
+                                }
+                            }
+                            var wrappedSpanSetAttribute = JSJS.wrapFunction({
+                                func: spanSetAttribute,
+                                args: [JSJS.Types.charPtr, JSJS.Types.dynamicPtr],
+                                returns: null});
+                            var ptrSpanSetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedSpanSetAttribute, 1, "setAttribute");
+                            
+                            switch (propName) {
+                                case "setAttribute":
+                                    return {type: JSJS.Types.funcPtr, val: ptrSpanSetAttribute};
+                                    break;
+                                case "clientWidth":
+                                    return {type: JSJS.Types.double, val: 0};
+                                    break;
+                                case "clientHeight":
+                                    return {type: JSJS.Types.double, val: 0};
+                                    break;
+                                case "offsetHeight":
+                                    return {type: JSJS.Types.double, val: 19};
+                                    break;
+                                case "offsetWidth":
+                                    return {type: JSJS.Types.double, val: 21};
+                                    break;
+                            }
+                            throw "not implemented span";
                         });
             } else if (elemName == "div") {
                 var wrapperDiv = document.createElement("div");
@@ -430,10 +471,8 @@ function init() {
         function jsAddEventListener(type, listener, useCapture) {
             console.log("document add event listener " + type);
             if (type == "DOMContentLoaded") {
-                var jsvalout = Module.allocate(2, 'i32');
-                _OBJECT_TO_JSVAL(jsvalout, listener);
-                assert(_JSVAL_IS_OBJECT(jsvalout));
-                console.log("about to call DOMContentLoaded callback");
+                var jsvalout = JSJS.CreateJSVal(jsObjs.cx, listener, JSJS.Types.objPtr);
+                console.log("about to call DOMContentLoaded callback " + jsvalout);
                 JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout);
                 console.log("finished calling DOMContentLoaded");
                 return undefined;
@@ -469,7 +508,6 @@ function init() {
                 case "data-size":
                 case "data-lang":
                 case "data-text":
-                    console.log("DATA TEXT RETURNING: " + twitButDestA.getAttribute(attr));
                 case "data-align":
                 case "data-via":
                 case "data-related":
@@ -481,8 +519,10 @@ function init() {
                 case "data-button-hashtag":
                 case "data-url":
                 case "data-dnt":
+                case "data-twttr-rendered":
                 case "data-enable-new-sizing":
                     var attrValue = twitButDestA.getAttribute(attr);
+                    console.log("=== GETTING === " + attr + " === " + attrValue);
                     var attrType = typeof(twitButDestA.getAttribute(attr));
                     if (attrType == 'object' && attrValue == null) {
                         return {'type': JSJS.Types.objPtr, 'val': null};
@@ -505,6 +545,8 @@ function init() {
             var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
             switch(attrName) {
                 case "data-rendering":
+                case "data-twttr-rendered":
+                    console.log("=== SETTING === " + attrName + " === " + attrValue);
                     twitButDestA.setAttribute(attrName, attrValue);
                     break;
                 default:
@@ -652,7 +694,8 @@ function init() {
                             //document.body.insertBefore(wrappedMap[newElement], document.body.firstChild);
                             return null;
                         }
-                        throw "Not Implemented";
+                        console.log(wrappedMap);
+                        throw "Not Implemented (" + newElement + ")";
                     }
                     var wrappedBodyInsertBefore = JSJS.wrapFunction({
                         func: jsBodyInsertBefore,
@@ -660,12 +703,34 @@ function init() {
                         returns: null});
                     var ptrBodyInsertBefore = JSJS.NewFunction(jsObjs.cx, wrappedBodyInsertBefore, 2, "insertBefore");
                     
+                    function jsBodyAppendChild(newElement) {
+                        console.log("IGNORING body appendchild");
+                    }
+                    var wrappedBodyAppendChild = JSJS.wrapFunction({
+                        func: jsBodyAppendChild,
+                        args: [JSJS.Types.objPtr],
+                        returns: null});
+                    var ptrBodyAppendChild = JSJS.NewFunction(jsObjs.cx, wrappedBodyAppendChild, 1, "appendChild");
+                    
+                    function jsBodyRemoveChild(newElement) {
+                        console.log("IGNORING body removechild");
+                    }
+                    var wrappedBodyRemoveChild = JSJS.wrapFunction({
+                        func: jsBodyRemoveChild,
+                        args: [JSJS.Types.objPtr],
+                        returns: null});
+                    var ptrBodyRemoveChild = JSJS.NewFunction(jsObjs.cx, wrappedBodyRemoveChild, 1, "removeChild");
+                    
                     return {'type': JSJS.Types.objPtr, 'val': makeWrappedElement(document.body,
                             function getter(propName) {
                                 console.log("document.body getter " + propName);
                                 switch (propName) {
                                     case "insertBefore":
                                         return {'type': JSJS.Types.funcPtr, 'val': ptrBodyInsertBefore};
+                                    case "appendChild":
+                                        return {'type': JSJS.Types.funcPtr, 'val': ptrBodyAppendChild};
+                                    case "removeChild":
+                                        return {'type': JSJS.Types.funcPtr, 'val': ptrBodyRemoveChild};
                                 }
                             }, function setter(cx, obj, propName, strict, val, jsval) {
                                 console.log("document.body setter " + propName);
@@ -764,8 +829,8 @@ function init() {
                 JSJS['FinalizeStub']);
         var jsWindow = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window",
                 jsWindowClass, 0, 0);
-
-        console.log("starting exec");
+        
+        console.log("executing script");
         var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcContents);
     }
 

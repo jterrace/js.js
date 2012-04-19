@@ -1,17 +1,12 @@
-function fib(fld) {
-       function f(n) {
-         if(n == 0) return(0);
-         if(n == 1) {
-           return(1);
-         }
-         else {
-           return(f(n - 1) + f(n - 2));
-         }
-       };
-        
-       var iters = window.prompt("What iteration (less than 30) of the Fibonacci sequence would you like to see?", 10);
-       var res = f(iters);
-       var ret = "The " + iters + " iteration of Fibonacci sequence is " + res;
-       document.getElementById(fld).innerHTML = ret;
+function fibonacci(n) {
+  if (n==0 || n==1) {
+    return n;
+  }
+  var prev2 = 0, prev1 = 1, fib = 1, i;
+  for (i=2; i<=n; i++) {
+    fib = prev1 + prev2;
+    prev2 = prev1;
+    prev1 = fib;
+  }
+  return fib;
 }
-

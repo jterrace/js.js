@@ -34,7 +34,7 @@
         //Define a global object called "record" that calls record function,
         // taking one double as input, logging the result, and returning the result
         function record(txt) {
-            window.parent.postMessage(txt, window.parent.location.origin);
+            window.parent.postMessage(txt, '*');
             return txt;
         }
         var wrappedNativeFunc = JSJS.wrapFunction({

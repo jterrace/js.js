@@ -1,57 +1,69 @@
+<!DOCTYPE html>
 <html>
-<head>
-<title>Benchmarking Library</title>
-<script type="text/javascript">
+  <head>
+    <title>js.js Library Microbenchmarks</title>
+    <link href="../bootstrap.min.css" rel="stylesheet" >
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../common.js"></script>
+    <script type="text/javascript">
+    
+        var TIMES_PER_TEST = 10;
+        var numTimesRan = 0;
+        var curIframe;
+        var pResults;
+        
+        function dispatchTest() {
+            if (numTimesRan == TIMES_PER_TEST) {
+                reportMessage("Tests Done.");
+                return;
+            }
+            
+            if (curIframe) {
+                document.body.removeChild(curIframe);
+            }
+            
+            reportMessage("Need to run test " + (TIMES_PER_TEST - numTimesRan) + " more times.");
+            
+            curIframe = document.createElement('iframe');
+            curIframe.src = "bench.html?dummy=" + Date.now(); 
+            document.body.appendChild(curIframe);
+        }
+        
+        function receiveResult(e) {
+            var resStr = "";
+            for (x in e.data) {
+                y = e.data[x];
+                resStr += x + " " + y + " ";
+            }
+            reportMessage(resStr);
+            reportMessage("");
+            numTimesRan++;
+            dispatchTest();
+        }
+        
+        function init() {
+            var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+            var eventer = window[eventMethod];
+            var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+            eventer(messageEvent, receiveResult, false);
+            
+            curIframe = null;
+            dispatchTest();
+        }
+        
+        window.onload = init;
+        
+    </script>
+  </head>
 
-    var TIMES_PER_TEST = 10;
-    var numTimesRan = 0;
-    var curIframe;
-    var pResults;
-    
-    function dispatchTest() {
-        if (numTimesRan == TIMES_PER_TEST) {
-            console.log("Tests Done.");
-            return;
-        }
-        
-        if (curIframe) {
-            document.body.removeChild(curIframe);
-        }
-        
-        console.log("Need to run test " + (TIMES_PER_TEST - numTimesRan) + " more times.");
-        
-        curIframe = document.createElement('iframe');
-        curIframe.src = "bench.html?dummy=" + Date.now(); 
-        document.body.appendChild(curIframe);
-    }
-    
-    function receiveResult(e) {
-        for (x in e.data) {
-            y = e.data[x];
-            pResults.innerHTML = pResults.innerHTML + " " + x + " " + y;
-        }
-        pResults.innerHTML = pResults.innerHTML + "<br>";
-        numTimesRan++;
-        dispatchTest();
-    }
-    
-    function init() {
-        var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
-        var eventer = window[eventMethod];
-        var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
-        eventer(messageEvent, receiveResult, false);
-        
-        pResults = document.getElementById('results');
-        curIframe = null;
-        dispatchTest();
-    }
-    
-    window.onload = init;
-    
-</script>
-</head>
-<body>
-	<h1>Benchmarking js.js</h1>
-	<p id="results"></p>
-</body>
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>js.js Library Microbenchmarks</h1>
+      </div>
+      <p>Benchmarks the running time of each of the js.js API calls. Times reported are in milliseconds.</p>
+      <pre id="console_log"></pre>
+    </div>
+  </body>
 </html>
+

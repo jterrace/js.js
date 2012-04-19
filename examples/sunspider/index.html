@@ -1,15 +1,19 @@
+<!DOCTYPE html>
 <html>
-<head>
-<title>Benchmarking Sunspider</title>
-<script type="text/javascript">
+  <head>
+    <title>js.js SunSpider Benchmark</title>
+    <link href="../bootstrap.min.css" rel="stylesheet" >
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../common.js"></script>
+    <script type="text/javascript">
 
     var tests = [
             "3d-cube",
             "3d-morph",
-            /*"3d-raytrace", */
+            "3d-raytrace",
             "access-binary-trees",
             "access-fannkuch",
-            /* "access-nbody", */
+            "access-nbody",
             "access-nsieve",
             "bitops-3bit-bits-in-byte",
             "bitops-bits-in-byte",
@@ -32,21 +36,20 @@
             "string-validate-input"
             ];
     
-    var TIMES_PER_TEST = 10;
+    var TIMES_PER_TEST = 1;
     var currentTest;
     var numTimesRan;
     var curIframe;
-    var pResults;
     
     function startTest() {
         currentTest = tests.shift();
-        pResults.innerHTML = pResults.innerHTML + "<br>" + currentTest;
+        reportMessage("Starting test " + currentTest);
         numTimesRan = 0;
     }
     
     function dispatchTest() {
         if (tests.length == 0 && numTimesRan == TIMES_PER_TEST) {
-            console.log("Tests Done.");
+            reportMessage("Tests Done.");
             return;
         }
         
@@ -58,15 +61,13 @@
             document.body.removeChild(curIframe);
         }
         
-        console.log("Need to run test '" + currentTest + "' " + (TIMES_PER_TEST - numTimesRan) + " more times.");
-        
         curIframe = document.createElement('iframe');
         curIframe.src = "bench.html?bench=" + currentTest + "&dummy=" + Date.now(); 
         document.body.appendChild(curIframe);
     }
     
     function receiveResult(e) {
-        pResults.innerHTML = pResults.innerHTML + " " + e.data;
+        reportMessage(e.data);
         numTimesRan++;
         dispatchTest();
     }
@@ -77,19 +78,23 @@
         var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
         eventer(messageEvent, receiveResult, false);
         
-        pResults = document.getElementById('results');
         startTest();
         curIframe = null;
         
         dispatchTest();
     }
     
-    window.onload = init;
+    $(document).ready(init);
     
 </script>
 </head>
-<body>
-	<h1>Benchmarking Sunspider</h1>
-	<p id="results"></p>
-</body>
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>js.js SunSpider Benchmark</h1>
+      </div>
+      <p>This runs the 26 SunSpider JavaScript benchmark tests inside js.js.</p>
+      <pre id="console_log"></pre>
+    </div>
+  </body>
 </html>

@@ -1,8 +1,12 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <title>js.js Native Function Execution</title>
-    <script type="text/javascript" src="../../src/js.O0.js"></script>
-    <script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+    <title>js.js Native Function demo</title>
+    <link href="../bootstrap.min.css" rel="stylesheet" >
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../../src/libjs.O2.min.js"></script>
+    <script type="text/javascript" src="../common.js"></script>
+    
     <script type="text/javascript">
 
     function start_jsjs() {
@@ -27,23 +31,29 @@
         if (rval) {
             //Convert the JSVal to a double
             d = JSJS.ValueToNumber(jsObjs.cx, rval);
+            d = "Result of nativeAdd(17, 2.4) = " + d;
         } else {
             d = "Can't get result because an error happened.";
         }
     
-        document.getElementById("demo").innerHTML = d;
+        reportMessage(d);
         
         // This is how you do a proper shut down
         JSJS.End(jsObjs);
     }
     
-    window.onload = start_jsjs;
+    $(document).ready(start_jsjs);
 
     </script>
   </head>
+  
   <body>
-    <h1>js.js Native Function Execution</h1>
-    <h2>If all goes well, the following should be replaced by the result of "nativeAdd(17, 2.4);":</h2>
-    <p id="demo">This will get replaced by the numeric result of the source being evaluated.</p>
+    <div class="container">
+      <div class="page-header">
+        <h1>js.js Native Function Demo</h1>
+      </div>
+      <p>Demonstrates calling a native function from sandbox space</p>
+      <pre id="console_log"></pre>
+    </div>
   </body>
 </html>

@@ -1,10 +1,12 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>js.js Callbacks Testing</title>
-<script type="text/javascript" src="../../src/libjs.O1.js"></script>
-<script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+<link href="../bootstrap.min.css" rel="stylesheet" >
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="../../src/libjs.O2.min.js"></script>
+<script type="text/javascript" src="../common.js"></script>
 <script type="text/javascript">
-
 
     function start_jsjs() {
         var jsObjs = JSJS.Init();
@@ -12,13 +14,13 @@
         // 1 int
         
         function callbackInt(func) {
-            console.log("callbackInt");
+            reportMessage("callbackInt");
             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.i32], [55]);
         }
         function verifyInt(val) {
-            console.log("verifyInt");
-            console.log("int val should be 55: " + val);
+            reportMessage("verifyInt");
+            reportMessage("int val should be 55: " + val);
             assert(val == 55);
             return 55;
         }
@@ -40,14 +42,14 @@
         // 1 string 
         
         function callbackString(func) {
-            console.log("callbackString");
-            console.log(func);
+            reportMessage("callbackString");
+            reportMessage(func);
             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.charPtr], ["blah"]);
         }
         function verifyString(s) {
-            console.log("verifyString");
-            console.log("s val should be 'blah': " + s);
+            reportMessage("verifyString");
+            reportMessage("s val should be 'blah': " + s);
             assert(s == 'blah');
             return "blah";
         }
@@ -68,7 +70,7 @@
         // 1 object
         
         function objGetProperty(propName) {
-            console.log("obj get property " + propName);
+            reportMessage("obj get property " + propName);
             switch(propName) {
             case "tester":
                 return {'type': JSJS.Types.charPtr, 'val': "hello"};
@@ -88,16 +90,16 @@
         var jsObj = JSJS.NewObject(jsObjs.cx, jsObjClass, 0, 0);
         
         function callbackObject(func) {
-            console.log("callbackObject");
-            console.log(func);
+            reportMessage("callbackObject");
+            reportMessage(func);
             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, func, JSJS.Types.objPtr);
             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout, [JSJS.Types.objPtr], [jsObj]);
         }
         function verifyObject(o, b) {
-            console.log("verifyObject");
-            console.log("obj val should be " + jsObj + ": " + o);
+            reportMessage("verifyObject");
+            reportMessage("obj val should be " + jsObj + ": " + o);
             assert(o == jsObj);
-            console.log("obj bool should be 'true': " + b);
+            reportMessage("obj bool should be 'true': " + b);
             assert(b == true);
         }
         var wrappedCallbackObject = JSJS.wrapFunction({
@@ -124,6 +126,13 @@
 </script>
 </head>
 <body>
-    <h1>js.js Callback Testing</h1>
+  <div class="container">
+    <div class="page-header">
+      <h1>js.js Callback Testing</h1>
+    </div>
+    <p>Demonstrates two-way communication with different argument types. Shows integers, strings, and objects
+       being passed back and forth between sandbox and native JavaScript space.</p>
+    <pre id="console_log"></pre>
+  </div>
 </body>
 </html>

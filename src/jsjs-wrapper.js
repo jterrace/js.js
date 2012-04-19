@@ -343,6 +343,24 @@ var JSJS = {
         var funcPosition = FUNCTION_TABLE.push(wrappedFunc) - 1;
         return _JS_NewFunction(cx, funcPosition, nargs, 0, 0, name);
     },
+    CallFunctionName: function CallFunctionName(cx, thisobj, name, argTypes, argVals, returnType) {
+        var jsvalArray = 0;
+        var numArgs = 0;
+        if (argTypes != undefined || argVals != undefined) {
+            numArgs = argTypes.length;
+            var jsvalArray = allocate(numArgs * 8, 'i32', ALLOC_NORMAL);
+            for (i=0; i<numArgs; i++) {
+                argTypes[i]['toJSVal'](jsvalArray + i * 8, argVals[i], cx);
+            }
+        }
+        var rval = allocate(8, 'i32', ALLOC_NORMAL);
+        var namePtr = allocate(intArrayFromString(name), 'i8', ALLOC_NORMAL);
+        var success = _JS_CallFunctionName(cx, thisobj, namePtr, numArgs, jsvalArray, rval);
+        if (!success) {
+            return null;
+        }
+        return returnType['fromPtr'](rval);
+    },
     CallFunctionValue: function CallFunctionValue(cx, thisobj, fval, argTypes, argVals) {
         var jsvalArray = 0;
         var numArgs = 0;
@@ -363,7 +381,7 @@ var JSJS = {
       var __DEBUG = false;
       var docmap = new Array(); // Be able to map backwards from JSObjects to their native counterparts 
   
-      jsjsDocument = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "document", 0, 0, 0);
+      var jsjsDocument = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "document", 0, 0, 0);
       if (!jsjsDocument) {
           return "Creating object failed";
       } 
@@ -441,7 +459,7 @@ var JSJS = {
       var __DEBUG = false;
   
       // Create the window object
-      jsjsWindow= JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", 0, 0, 0);
+      var jsjsWindow= JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window", 0, 0, 0);
       if (!jsjsWindow) {
           return "Creating object failed";
       } 
@@ -683,6 +701,7 @@ JSJS['wrapSetter'] = JSJS.wrapSetter;
 JSJS['wrapResolver'] = JSJS.wrapResolver;
 JSJS['NewFunction'] = JSJS.NewFunction;
 JSJS['CallFunctionValue'] = JSJS.CallFunctionValue;
+JSJS['CallFunctionName'] = JSJS.CallFunctionName;
 JSJS['InitDocument'] = JSJS.InitDocument;
 JSJS['InitWindow'] = JSJS.InitWindow;
 JSJS['SetLock'] = JSJS.SetLock;

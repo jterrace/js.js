@@ -1,8 +1,12 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>js.js Twitter Button</title>
-<script type="text/javascript" src="../../src/libjs.O1.js"></script>
-<script type="text/javascript" src="../../src/jsjs-wrapper.js"></script>
+<link href="../bootstrap.min.css" rel="stylesheet" >
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="../../src/libjs.O2.min.js"></script>
+<script type="text/javascript" src="../common.js"></script>
+
 <script type="text/javascript">
 
 function init() {
@@ -15,11 +19,11 @@ function init() {
    var srcContents = xhr.responseText;
    
    function globalResolveProperty(propName) {
-       console.log("global resolve " + propName);
+       reportMessage("global resolve " + propName);
        return 1;
    }
    function globalGetProperty(propName) {
-       console.log('getting global property ' + propName);
+       reportMessage('getting global property ' + propName);
        return undefined;
    }
    
@@ -27,7 +31,7 @@ function init() {
        'global_resolver': JSJS.wrapResolver(globalResolveProperty)});
    
    function locationGetProperty(propName) {
-       console.log("location get property " + propName);
+       reportMessage("location get property " + propName);
        switch(propName) {
        case "hash":
            return {'type': JSJS.Types.charPtr, 'val': window.location.hash};
@@ -68,7 +72,7 @@ function init() {
    var jsLocation = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "location", jsLocationClass, 0, 0);
    
    function screenGetProperty(propName) {
-       console.log("screen get property " + propName);
+       reportMessage("screen get property " + propName);
        switch(propName) {
        case "width":
            return {'type': JSJS.Types.double, 'val': screen.width};
@@ -91,7 +95,7 @@ function init() {
    var jsScreen = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "screen", jsScreenClass, 0, 0);
    
    function navigatorGetProperty(propName) {
-       console.log("navigator get property " + propName);
+       reportMessage("navigator get property " + propName);
        switch(propName) {
        case "doNotTrack":
            return {'type': JSJS.Types.double, 'val': 1};
@@ -115,7 +119,7 @@ function init() {
    
    function wrapEventObject(evOrig, srcPtr) {
        function eventGetProperty(propName) {
-           console.log("event get property " + propName);
+           reportMessage("event get property " + propName);
            switch(propName) {
            case "source":
                return {'type': JSJS.Types.objPtr, 'val': srcPtr};
@@ -143,15 +147,15 @@ function init() {
    
    function makeWrappedElement(elem, getter, setter, resolver) {
        function _elementBoxGetProperty(propName) {
-           console.log('element box get ' + propName);
+           reportMessage('element box get ' + propName);
            return true;
        }
        function _elementBoxSetProperty(cx, obj, idStrReal, strict, val, jsval) {
-           console.log('setting element box property ' + idStrReal + " = " + val + " / " + jsval);
+           reportMessage('setting element box property ' + idStrReal + " = " + val + " / " + jsval);
            return undefined;
        }
        function _elementBoxResolveProperty(idStrReal) {
-           console.log("element box resolve property " + idStrReal);
+           reportMessage("element box resolve property " + idStrReal);
            return 1;
        }
        var elementBoxGetProperty = getter || _elementBoxGetProperty;
@@ -170,7 +174,7 @@ function init() {
        var objPtr = JSJS.NewObject(jsObjs.cx, jsElementBox, 0, 0);
        
        function elementCompareDocumentPosition(otherNode) {
-           console.log("elementCompareDocumentPosition");
+           reportMessage("elementCompareDocumentPosition");
            throw "Not Implemented";
            return 0;
        }
@@ -187,7 +191,7 @@ function init() {
    
    
    function jsGetElementsByTagName(something) {
-       console.log("getelementsbytagname " + something);
+       reportMessage("getelementsbytagname " + something);
        return [];
    }
    var wrappedGetElementsByTagName = JSJS.wrapFunction({
@@ -197,7 +201,7 @@ function init() {
    var ptrGetElementsByTagName = JSJS.NewFunction(jsObjs.cx, wrappedGetElementsByTagName, 1, "getElementsByTagName");
    
    function jsGetElementById(elemId) {
-       console.log("getelementbyid " + elemId);
+       reportMessage("getelementbyid " + elemId);
        var elem = document.getElementById(elemId);
        if (elem == null) {
            return 0;
@@ -212,12 +216,12 @@ function init() {
    var ptrGetElementById = JSJS.NewFunction(jsObjs.cx, wrappedGetElementById, 1, "getElementById");
    
     function jsIframeCloneNode(deep) {
-            console.log("cloneIframeNode ");
+            reportMessage("cloneIframeNode ");
             {
                 var wrappedElem = document.createElement("iframe");
                 
                 function jsIframeSetAttribute(attrName, attrValue) {
-                    console.log("wrapped Iframe setAttribute " + attrName);
+                    reportMessage("wrapped Iframe setAttribute " + attrName);
                     var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
                     switch (attrName) {
                         case "allowTransparency":
@@ -225,7 +229,7 @@ function init() {
                         case "scrolling":
                         case "tabIndex":
                         case "name":
-                            console.log("setting iframe " + attrName + "=" + attrConverted);
+                            reportMessage("setting iframe " + attrName + "=" + attrConverted);
                             wrappedElem.setAttribute(attrName, attrConverted);
                             return null;
                     }
@@ -238,7 +242,7 @@ function init() {
                 var ptrIframeSetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedIframeSetAttribute, 2, "setAttribute");
                 
                 function jsIframeGetAttribute(attrName) {
-                    console.log("wrapped Iframe getAttribute " + attrName);
+                    reportMessage("wrapped Iframe getAttribute " + attrName);
                     switch (attrName) {
                         case "style":
                             return {'type': JSJS.Types.charPtr, 'val': wrappedElem.style};
@@ -253,13 +257,13 @@ function init() {
                 var ptrIframeGetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedIframeGetAttribute, 1, "getAttribute");
                 
                 function jsIframeAddEventListener(type, listener, useCapture) {
-                    console.log("wrapped Iframe addEventListener " + type);
+                    reportMessage("wrapped Iframe addEventListener " + type);
                     if (type == "load") {
                         wrappedElem.addEventListener("load", function() {
                             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, listener, JSJS.Types.objPtr);
-                            console.log("about to call iframe callback");
+                            reportMessage("about to call iframe callback");
                             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout);
-                            console.log("finished calling iframe load");
+                            reportMessage("finished calling iframe load");
                         });
                         return undefined;
                     }
@@ -274,7 +278,7 @@ function init() {
                 
                 return makeWrappedElement(wrappedElem,
                         function getter(propName) {
-                            console.log("iframe getter " + propName);
+                            reportMessage("iframe getter " + propName);
                             switch (propName) {
                                 case "id":
                                     return {'type': JSJS.Types.charPtr, 'val': wrappedElem.id};
@@ -291,20 +295,20 @@ function init() {
                             }
                         },
                         function setter(cx, obj, propName, strict, val, jsval) {
-                            console.log("iframe setter " + propName);
+                            reportMessage("iframe setter " + propName);
                             if (propName == "id") {
                                 wrappedElem.id = val;
                             } else if (propName == "src") {
                                 var l = document.createElement("a");
                                 l.href = val;
                                 if (l.hostname == "platform.twitter.com") {
-                                    console.log("setting iframe source to " + val);
+                                    reportMessage("setting iframe source to " + val);
                                     wrappedElem.src = val;
                                 }
                             }
                         },
                         function resolver(propName) {
-                            console.log("iframe resolve " + propName);
+                            reportMessage("iframe resolve " + propName);
                             return 1;
                         }
                 );
@@ -322,13 +326,13 @@ function init() {
         var twitButDestA = document.getElementById('twitbuttdest');
         
         function jsCreateElement(elemName) {
-            console.log("create element " + elemName);
+            reportMessage("create element " + elemName);
             if (elemName == "a") {
                 return JSJS.NewObject(jsObjs.cx, 0, 0, jsDocument);
             } else if (elemName == "iframe") {
                 return makeWrappedElement(document.createElement("iframe"),
                         function(propName) {
-                            console.log("wrapped iframe getter " + propName);
+                            reportMessage("wrapped iframe getter " + propName);
                             switch (propName) {
                                 case "cloneNode":
                                     return {
@@ -343,10 +347,10 @@ function init() {
                 
                 return makeWrappedElement(wrapperSpan,
                         function(propName) {
-                            console.log("wrapped span getter " + propName);
+                            reportMessage("wrapped span getter " + propName);
                           
                             function spanSetAttribute(attrName, attrValue) {
-                                console.log("span setAttribute " + attrName);
+                                reportMessage("span setAttribute " + attrName);
                                 var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
                                 switch(attrName) {
                                     case "style":
@@ -387,12 +391,12 @@ function init() {
                 
                 return makeWrappedElement(wrapperDiv,
                         function(propName) {
-                            console.log("wrapped div getter " + propName);
+                            reportMessage("wrapped div getter " + propName);
                             switch (propName) {
                                 case "firstChild":
                                     
                                     function divIFSetAttribute(attrName, attrValue) {
-                                        console.log("div iframe setAttribute " + attrName);
+                                        reportMessage("div iframe setAttribute " + attrName);
                                         var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
                                         switch(attrName) {
                                             case "title":
@@ -410,7 +414,7 @@ function init() {
                                     
                                     wrappedIframeChild = makeWrappedElement(wrapperDiv.firstChild,
                                             function(propName) {
-                                                console.log("wrapped iframe get " + propName);
+                                                reportMessage("wrapped iframe get " + propName);
                                                 switch (propName) {
                                                     case "style":
                                                         return {type: JSJS.Types.charPtr, val: wrapperDiv.firstChild.style};
@@ -421,7 +425,7 @@ function init() {
                                                 }
                                             },
                                             function(cx, obj, propName, strict, val, jsval) {
-                                                console.log("wrapped iframe set " + propName);
+                                                reportMessage("wrapped iframe set " + propName);
                                                 switch (propName) {
                                                     case "compareDocumentPosition":
                                                         return;
@@ -429,7 +433,7 @@ function init() {
                                                         var l = document.createElement("a");
                                                         l.href = val;
                                                         if (l.hostname == "platform.twitter.com") {
-                                                            console.log("setting iframe source to " + val);
+                                                            reportMessage("setting iframe source to " + val);
                                                             wrapperDiv.firstChild.src = val;
                                                             return;
                                                         }
@@ -444,7 +448,7 @@ function init() {
                                     throw "nope";
                             }
                         }, function(cx, obj, propName, strict, val, jsval) {
-                            console.log("trying to set wrapped div attr " + propName);
+                            reportMessage("trying to set wrapped div attr " + propName);
                             switch (propName) {
                                 case "compareDocumentPosition":
                                     return;
@@ -469,12 +473,12 @@ function init() {
 
         
         function jsAddEventListener(type, listener, useCapture) {
-            console.log("document add event listener " + type);
+            reportMessage("document add event listener " + type);
             if (type == "DOMContentLoaded") {
                 var jsvalout = JSJS.CreateJSVal(jsObjs.cx, listener, JSJS.Types.objPtr);
-                console.log("about to call DOMContentLoaded callback " + jsvalout);
+                reportMessage("about to call DOMContentLoaded callback " + jsvalout);
                 JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout);
-                console.log("finished calling DOMContentLoaded");
+                reportMessage("finished calling DOMContentLoaded");
                 return undefined;
             }
             throw "Not Implemented";
@@ -487,7 +491,7 @@ function init() {
         var ptrAddEventListener = JSJS.NewFunction(jsObjs.cx, wrappedAddEventListener, 3, "addEventListener");
 
         function jsRemoveEventListener(type, listener, useCapture) {
-            console.log("document remove event listener " + type);
+            reportMessage("document remove event listener " + type);
             if (type == "DOMContentLoaded") {
                 return undefined;
             }
@@ -501,7 +505,7 @@ function init() {
         var ptrRemoveEventListener = JSJS.NewFunction(jsObjs.cx, wrappedRemoveEventListener, 3, "removeEventListener");
         
         function aGetAttribute(attr) {
-            console.log("wrapped A getAttribute " + attr);
+            reportMessage("wrapped A getAttribute " + attr);
             switch (attr) {
                 case "data-rendering":
                 case "data-count":
@@ -522,7 +526,7 @@ function init() {
                 case "data-twttr-rendered":
                 case "data-enable-new-sizing":
                     var attrValue = twitButDestA.getAttribute(attr);
-                    console.log("=== GETTING === " + attr + " === " + attrValue);
+                    reportMessage("=== GETTING === " + attr + " === " + attrValue);
                     var attrType = typeof(twitButDestA.getAttribute(attr));
                     if (attrType == 'object' && attrValue == null) {
                         return {'type': JSJS.Types.objPtr, 'val': null};
@@ -541,12 +545,12 @@ function init() {
         var ptrAGetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedAGetAttribute, 1, "getAttribute");
         
         function aSetAttribute(attrName, attrValue) {
-            console.log("wrapped A setAttribute " + attrName);
+            reportMessage("wrapped A setAttribute " + attrName);
             var attrConverted = JSJS.identifyConvertValue(jsObjs.cx, attrValue);
             switch(attrName) {
                 case "data-rendering":
                 case "data-twttr-rendered":
-                    console.log("=== SETTING === " + attrName + " === " + attrValue);
+                    reportMessage("=== SETTING === " + attrName + " === " + attrValue);
                     twitButDestA.setAttribute(attrName, attrValue);
                     break;
                 default:
@@ -560,8 +564,10 @@ function init() {
         var ptrASetAttribute = JSJS.NewFunction(jsObjs.cx, wrappedASetAttribute, 1, "setAttribute");
         
         function divReplaceChild(newChild, oldChild) {
-            console.log("replaceChild " + oldChild + " with " + newChild);
-            assert(newChild in wrappedMap && oldChild in wrappedMap);
+            reportMessage("replaceChild " + oldChild + " with " + newChild);
+            if (!(newChild in wrappedMap && oldChild in wrappedMap)) {
+                throw "Wrong div replacement!";
+            }
             twitButContainer.replaceChild(wrappedMap[newChild], wrappedMap[oldChild]);
         }
         var wrappedDivReplaceChild = JSJS.wrapFunction({
@@ -572,7 +578,7 @@ function init() {
         
         var wrappedTwitContainer = makeWrappedElement(twitButContainer,
                 function containergetter(propName) {
-                    console.log("container getter " + propName);
+                    reportMessage("container getter " + propName);
                     switch (propName) {
                         case "lang":
                             return {'type': JSJS.Types.charPtr, 'val': twitButContainer.lang};
@@ -585,12 +591,12 @@ function init() {
                 });
         
         function jsQuerySelectorAll(selectors) {
-            console.log("querySelectorAll " + selectors);
+            reportMessage("querySelectorAll " + selectors);
             switch (selectors) {
                 case "a.twitter-share-button":
                     return [[JSJS.Types.objPtr, makeWrappedElement(twitButDestA,
                             function wrappedAgetter(propName) {
-                                console.log("wrapped A getter propname " + propName);
+                                reportMessage("wrapped A getter propname " + propName);
                                 switch (propName) {
                                     case "getAttribute":
                                         return {'type': JSJS.Types.funcPtr, 'val': ptrAGetAttribute};
@@ -610,7 +616,7 @@ function init() {
                                         throw "not implemeneted";
                                 }
                             }, function wrappedAsetter(cx, obj, propName, strict, val, vp) {
-                                console.log("wrapped A setter propname " + propName);
+                                reportMessage("wrapped A setter propname " + propName);
                                 switch (propName) {
                                     case "className":
                                         twitButDestA.className = val;
@@ -634,7 +640,7 @@ function init() {
         var ptrQuerySelectorAll = JSJS.NewFunction(jsObjs.cx, wrappedQuerySelectorAll, 1, "querySelectorAll");
 
         function jsQuerySelector(selectors) {
-            console.log("querySelector " + selectors);
+            reportMessage("querySelector " + selectors);
             throw "Not implemented"
         }
         var wrappedQuerySelector = JSJS.wrapFunction({
@@ -645,12 +651,12 @@ function init() {
         var ptrQuerySelector = JSJS.NewFunction(jsObjs.cx, wrappedQuerySelector, 1, "querySelector");
 
         function documentResolveProperty(propName) {
-            console.log("document resolve " + propName);
+            reportMessage("document resolve " + propName);
             return 1;
         }
 
         function documentGetProperty(propName) {
-            console.log('getting document property ' + propName);
+            reportMessage('getting document property ' + propName);
             switch (propName) {
                 case "getElementsByTagName":
                     return {'type' : JSJS.Types.funcPtr, 'val' : ptrGetElementsByTagName};
@@ -689,12 +695,12 @@ function init() {
                     {
                     
                     function jsBodyInsertBefore(newElement, referenceElement) {
-                        console.log("body insertBefore");
+                        reportMessage("body insertBefore");
                         if (newElement in wrappedMap && wrappedMap[newElement].tagName == "IFRAME") {
                             //document.body.insertBefore(wrappedMap[newElement], document.body.firstChild);
                             return null;
                         }
-                        console.log(wrappedMap);
+                        reportMessage(wrappedMap);
                         throw "Not Implemented (" + newElement + ")";
                     }
                     var wrappedBodyInsertBefore = JSJS.wrapFunction({
@@ -704,7 +710,7 @@ function init() {
                     var ptrBodyInsertBefore = JSJS.NewFunction(jsObjs.cx, wrappedBodyInsertBefore, 2, "insertBefore");
                     
                     function jsBodyAppendChild(newElement) {
-                        console.log("IGNORING body appendchild");
+                        reportMessage("IGNORING body appendchild");
                     }
                     var wrappedBodyAppendChild = JSJS.wrapFunction({
                         func: jsBodyAppendChild,
@@ -713,7 +719,7 @@ function init() {
                     var ptrBodyAppendChild = JSJS.NewFunction(jsObjs.cx, wrappedBodyAppendChild, 1, "appendChild");
                     
                     function jsBodyRemoveChild(newElement) {
-                        console.log("IGNORING body removechild");
+                        reportMessage("IGNORING body removechild");
                     }
                     var wrappedBodyRemoveChild = JSJS.wrapFunction({
                         func: jsBodyRemoveChild,
@@ -723,7 +729,7 @@ function init() {
                     
                     return {'type': JSJS.Types.objPtr, 'val': makeWrappedElement(document.body,
                             function getter(propName) {
-                                console.log("document.body getter " + propName);
+                                reportMessage("document.body getter " + propName);
                                 switch (propName) {
                                     case "insertBefore":
                                         return {'type': JSJS.Types.funcPtr, 'val': ptrBodyInsertBefore};
@@ -733,11 +739,11 @@ function init() {
                                         return {'type': JSJS.Types.funcPtr, 'val': ptrBodyRemoveChild};
                                 }
                             }, function setter(cx, obj, propName, strict, val, jsval) {
-                                console.log("document.body setter " + propName);
+                                reportMessage("document.body setter " + propName);
                             })}
                     }
             }
-            console.log("returning nothing for document." + propName);
+            reportMessage("returning nothing for document." + propName);
             return true;
         }
 
@@ -755,7 +761,7 @@ function init() {
                 ptrQuerySelector);
 
         function jsPostMessage(message, origin) {
-            console.log("postMessage " + origin);
+            reportMessage("postMessage " + origin);
             throw "Not implemented";
         }
         var wrappedPostMessage = JSJS.wrapFunction({
@@ -766,22 +772,22 @@ function init() {
         var ptrPostMessage = JSJS.NewFunction(jsObjs.cx, wrappedPostMessage, 2, "postMessage");
 
         function jsWindowAddEventListener(type, listener, useCapture) {
-            console.log("Window addEventListener " + type);
+            reportMessage("Window addEventListener " + type);
             var jsvalout = JSJS.CreateJSVal(jsObjs.cx, listener, JSJS.Types.objPtr);
             if (type == "message") {
                 window.addEventListener("message", function(event) {
-                    console.log("window message received");
+                    reportMessage("window message received");
                     for (wrappedPtr in wrappedMap) {
                         if (wrappedMap[wrappedPtr] == event.source) {
                             
-                            console.log("about to call message callback");
+                            reportMessage("about to call message callback");
                             JSJS.CallFunctionValue(jsObjs.cx, jsObjs.glob, jsvalout,
                                     [JSJS.Types.objPtr], [wrapEventObject(event, wrappedPtr)]);
-                            console.log("done calling message callback");
+                            reportMessage("done calling message callback");
                             return;
                         }
                     }
-                    console.log("returning because no valid message handler found");
+                    reportMessage("returning because no valid message handler found");
                 });
                 return undefined;
             }
@@ -795,7 +801,7 @@ function init() {
         var ptrWindowAddEventListener = JSJS.NewFunction(jsObjs.cx, wrappedWindowAddEventListener, 1, "addEventListener");
         
         function windowGetProperty(propName) {
-            console.log('getting window property ' + propName);
+            reportMessage('getting window property ' + propName);
             switch (propName) {
                 case "postMessage":
                     return {'type' : JSJS.Types.funcPtr, 'val' : ptrPostMessage};
@@ -804,21 +810,21 @@ function init() {
                     return {'type' : JSJS.Types.funcPtr, 'val' : ptrWindowAddEventListener};
                     break;
                 default:
-                    console.log("returning global value for prop " + propName);
+                    reportMessage("returning global value for prop " + propName);
                     return {'type' : null, 'val' : JSJS.GetProperty(jsObjs.cx, jsObjs.glob, propName)};
                     break;
             }
             return true;
         }
         function windowSetProperty(cx, obj, idStrReal, strict, val, jsval) {
-            console.log('setting window property ' + idStrReal + " = " + val
+            reportMessage('setting window property ' + idStrReal + " = " + val
                     + " / " + jsval);
             // Copy window property sets to the global object
             JSJS.SetProperty(jsObjs.cx, jsObjs.glob, idStrReal, jsval);
             return true;
         }
         function windowResolveProperty(propName) {
-            console.log("window resolve prop " + propName);
+            reportMessage("window resolve prop " + propName);
             return 1;
         }
         var jsWindowClass = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
@@ -830,18 +836,31 @@ function init() {
         var jsWindow = JSJS.DefineObject(jsObjs.cx, jsObjs.glob, "window",
                 jsWindowClass, 0, 0);
         
-        console.log("executing script");
+        reportMessage("executing script");
         var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, srcContents);
     }
 
     window.onload = init;
 </script>
 </head>
+
 <body>
-<h1>js.js Twitter Button Example</h1>
-<h2>The tweet button should replace this &lt;a&gt; tag:</h2>
-<div id="twitcontainer">
-<a id="twitbuttdest" href="https://twitter.com/share" data-url="https://jterrace.github.com/js.js/twitter/" data-text="I just clicked a Twitter button created by running Twitter's script inside #js.js" class="twitter-share-button" data-via="jterrace" data-size="large">Tweet</a>
-</div>
+  <div class="container">
+    <div class="page-header">
+      <h1>js.js Twitter Button Example</h1>
+    </div>
+    <div class="row">
+      <div class="span6">
+        <p>Demonstrates executing Twitter's button code inside js.js and mediating access to the DOM. The tweet button
+           should replace the &lt;a&gt; tag:</p>
+        <hr>
+        <div id="twitcontainer">
+          <a id="twitbuttdest" href="https://twitter.com/share" data-url="https://jterrace.github.com/js.js/twitter/" data-text="I just clicked a Twitter button created by running Twitter's script inside #js.js" class="twitter-share-button" data-via="jterrace" data-size="large">Tweet</a>
+        </div>
+        <hr>
+        <pre id="console_log"></pre>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

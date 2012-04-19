@@ -5,6 +5,18 @@ emscripten_ translates the output into JavaScript.
 
 -----
 
+
+
+Demos
+-----
+See several running demos `here <http://jterrace.github.com/js.js/>`_.
+
+Paper
+-----
+Academic paper to appear at
+`WebApps 2012 <http://static.usenix.org/events/webapps12/>`_ located
+`here <http://www.cs.princeton.edu/~jterrace/docs/jsjs.pdf>`_.
+
 Status
 ------
 The compiled version of js.js is 3MB and only **594KB** after gzip compression.

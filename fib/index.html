@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>js.js Fib demo</title>
+    <link href="../bootstrap.min.css" rel="stylesheet" >
+    <script type="text/javascript" src="../jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../libjs.O2.min.js"></script>
+    <script type="text/javascript" src="../common.js"></script>
+    <script type="text/javascript" src="fib.js"></script>
+    
+    <script type="text/javascript">
+    
+    $(document).ready(function() {
+        
+      var a = $.ajax({
+        url: "fib.js",
+        async: false
+      });
+      var fibSrc = a.responseText;
+      
+      var jsObjs = JSJS.Init();
+      JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, fibSrc);
+        
+      $("#calcjsjs").click(function() {
+          var iternum = parseInt($('#iteration_num').val());
+          var result = JSJS.CallFunctionName(jsObjs.cx, jsObjs.glob, "fibonacci", [JSJS.Types.i32], [iternum], JSJS.Types.i32);
+          reportMessage("js.js result for iteration " + iternum + ": " + result);
+      });
+      $("#calcnative").click(function() {
+          var iternum = parseInt($('#iteration_num').val());
+          var result = fibonacci(iternum);
+          reportMessage("Native result for iteration " + iternum + ": " + result);
+      });
+    });
+    
+    </script>
+
+  </head>
+  
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>js.js Fibonacci Demo</h1>
+      </div>
+      <p>Demonstrates calculating a fibonacci number</p>
+      <div class="row">
+        <div class="span6">
+          <div class="form-vertical well">
+            <fieldset>
+              <div class="control-group">
+                <label class="control-label" for="iteration_num">Iteration Number:</label>
+                <div class="controls">
+                  <input type="text" class="input-xlarge" id="iteration_num" value="10">
+                </div>
+              </div>
+              <div class="form-actions">
+                <button id="calcjsjs" class="btn btn-primary">Calculate (js.js)</button>
+                <button id="calcnative" class="btn">Calculate (native)</button>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+      <p>Results</p>
+      <pre id="console_log"></pre>
+    </div>
+  </body>
+</html>

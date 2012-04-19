@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>js.js Simple Execution Demo</title>
+    <link href="../bootstrap.min.css" rel="stylesheet" >
+    <script type="text/javascript" src="../jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../libjs.O2.min.js"></script>
+    <script type="text/javascript" src="../common.js"></script>
+    <script type="text/javascript">
+
+    	function start_jsjs() {
+    	    
+    	    var src = "1 + 1";
+    	    var jsObjs = JSJS.Init();
+    
+    	    var compiledObj = JSJS.CompileScript(jsObjs.cx, jsObjs.glob, src);
+    	    var rval = JSJS.ExecuteScript(jsObjs.cx, jsObjs.glob, compiledObj);
+    	    
+    	    var d;
+    	    if (rval) {
+    	        //Convert the JSVal to a double
+    	        d = JSJS.ValueToNumber(jsObjs.cx, rval);
+    	        d = "Result: " + d;
+    	    } else {
+    	        d = "Can't get result because an error happened.";
+    	    }
+    	
+    	    reportMessage(d)
+    	    
+    	    // This is how you do a proper shut down
+    	    JSJS.End(jsObjs);
+    	}
+    	
+    	window.onload = start_jsjs;
+
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>js.js Simple Execution Demo</h1>
+      </div>
+      <p>Demonstrates executing the expression 1+1 and getting the result, 2.</p>
+      <pre id="console_log"></pre>
+    </div>
+  </body>
+</html>

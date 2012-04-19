@@ -1,0 +1,94 @@
+<html>
+<head>
+<title>js.js Library Benchmark</title>
+
+<script type="text/javascript">
+    
+    var ttt1;
+    var t2;
+    var allTimes = {};
+    
+    function startTime() {
+        ttt1 = new Date();
+    }
+    function endTime(name) {
+        t2 = new Date();
+        allTimes[name] = t2-ttt1;
+    }
+    
+    function doneScriptLoad() {
+        endTime('script_load');
+        
+        startTime();
+        var rt = JSJS.NewRuntime(1 * 1024 * 1024);
+        endTime('new_runtime');
+
+        startTime();
+        var cx = JSJS.NewContext(rt, 8192);
+        endTime('new_context');
+
+        startTime();
+        var JSOPTION_VAROBJFIX = 1 << 2;
+        JSJS.SetOptions(cx, JSOPTION_VAROBJFIX);
+        endTime('set_options');
+        
+        startTime();
+        var JSVERSION_LATEST = 185;
+        JSJS.SetVersion(cx, JSVERSION_LATEST);
+        endTime('set_version');
+
+        startTime();
+        
+        var _GLOBAL_CLASS = JSJS.CreateClass(JSJS['JSCLASS_GLOBAL_FLAGS'],
+                                                JSJS['PropertyStub'],
+                                                JSJS['PropertyStub'],
+                                                JSJS['PropertyStub'],
+                                                JSJS['StrictPropertyStub'],
+                                                JSJS['EnumerateStub'],
+                                                JSJS['ResolveStub'],
+                                                JSJS['ConvertStub'],
+                                                JSJS['FinalizeStub']);
+        
+        var glob = JSJS.NewCompartmentAndGlobalObject(cx, _GLOBAL_CLASS, 0);
+        endTime('global_class');
+
+        startTime();
+        JSJS.InitStandardClasses(cx, glob);
+        endTime('standard_classes');
+        
+        startTime();
+        var rval = JSJS.ExecuteScript(cx, glob, "1+1");
+        endTime('eval_add');
+        
+        startTime();
+        JSJS.DestroyContext(cx);
+        endTime('destroy_context');
+        
+        startTime();
+        JSJS.DestroyRuntime(rt);
+        endTime('destroy_runtime');
+        
+        startTime();
+        JSJS.ShutDown();
+        endTime('shutdown');
+        
+        window.parent.postMessage(allTimes, "http://localhost:8000/");
+    }
+    
+    function init() {
+        startTime();
+        var element1 = document.createElement("script");
+        element1.src = "../../src/libjs.O2.min.js";
+        element1.type="text/javascript";
+        element1.onload = doneScriptLoad;
+        document.getElementsByTagName("head")[0].appendChild(element1);
+    }
+
+    window.onload = init;
+    
+</script>
+</head>
+<body>
+<h1>Library Benchmark</h1>
+</body>
+</html>

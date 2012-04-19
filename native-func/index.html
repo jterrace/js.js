@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>js.js Native Function demo</title>
+    <link href="../bootstrap.min.css" rel="stylesheet" >
+    <script type="text/javascript" src="../jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../libjs.O2.min.js"></script>
+    <script type="text/javascript" src="../common.js"></script>
+    
+    <script type="text/javascript">
+
+    function start_jsjs() {
+        var src = "nativeAdd(17, 2.4);";
+        var jsObjs = JSJS.Init();
+    
+        //Define a global object called "nativeAdd" that calls nativeAdd function,
+        // taking two doubles as input, returning a double
+        function nativeAdd(d1, d2) {
+            console.log("nativeAdd got params " + d1 + " " + d2);
+            return d1 + d2;
+        }
+        var wrappedNativeFunc = JSJS.wrapFunction({
+            func: nativeAdd,
+            args: [JSJS.Types['double'], JSJS.Types['double']],
+            returns: JSJS.Types['double']});
+        JSJS.DefineFunction(jsObjs.cx, jsObjs.glob, "nativeAdd", wrappedNativeFunc, 2, 0);
+        
+        var rval = JSJS.EvaluateScript(jsObjs.cx, jsObjs.glob, src);
+        
+        var d;
+        if (rval) {
+            //Convert the JSVal to a double
+            d = JSJS.ValueToNumber(jsObjs.cx, rval);
+            d = "Result of nativeAdd(17, 2.4) = " + d;
+        } else {
+            d = "Can't get result because an error happened.";
+        }
+    
+        reportMessage(d);
+        
+        // This is how you do a proper shut down
+        JSJS.End(jsObjs);
+    }
+    
+    $(document).ready(start_jsjs);
+
+    </script>
+  </head>
+  
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>js.js Native Function Demo</h1>
+      </div>
+      <p>Demonstrates calling a native function from sandbox space</p>
+      <pre id="console_log"></pre>
+    </div>
+  </body>
+</html>

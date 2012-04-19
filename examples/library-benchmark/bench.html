@@ -72,7 +72,7 @@
         JSJS.ShutDown();
         endTime('shutdown');
         
-        window.parent.postMessage(allTimes, window.parent.location.origin);
+        window.parent.postMessage(allTimes, '*');
     }
     
     function init() {

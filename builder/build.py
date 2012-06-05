@@ -41,17 +41,17 @@ def ensure_needed_commands():
 def get_llvm_dir():
     return util.abspath_join(BUILD_DIR_ABS, conf.LLVM_DIR)
 def get_llvm_bindir():
-    return util.abspath_join(get_llvm_dir(), "Debug/bin")
+    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin")
 def get_clang_path():
-    return util.abspath_join(get_llvm_dir(), "Debug/bin/clang")
+    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/clang")
 def get_clangpp_path():
-    return util.abspath_join(get_llvm_dir(), "Debug/bin/clang++")
+    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/clang++")
 def get_llvm_link_path():
-    return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-link")
+    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/llvm-link")
 def get_llvm_dis_path():
-    return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-dis")
+    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/llvm-dis")
 def get_llvm_ar_path():
-    return util.abspath_join(get_llvm_dir(), "Debug/bin/llvm-ar")
+    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/llvm-ar")
 def get_v8_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.V8_DIR, "d8")
 def get_spidermonkey_path():
@@ -186,7 +186,8 @@ def deps(**kwargs):
                                        get_closure_compiler_path(),
                                        get_emscripten_dir(),
                                        get_spidermonkey_path(),
-                                       get_nodejs_path())
+                                       get_nodejs_path(),
+				       ['-Wno-return-type-c-linkage'])
     
     print("[DONE] - deps")
 

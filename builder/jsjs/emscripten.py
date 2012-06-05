@@ -14,10 +14,12 @@ CLOSURE_COMPILER = "%CLOSURE_COMPILER%"
 TEMP_DIR = '/tmp'
 COMPILER_ENGINE = V8_ENGINE
 JS_ENGINES = [NODE_JS, SPIDERMONKEY_ENGINE, V8_ENGINE]
+COMPILER_OPTS = [%COMPILER_OPTS%]
 """
 
 def write_emscripten_config(llvm_root, v8_engine, closure_compiler, emscripten_root,
-                            spidermonkey_engine, nodejs_path, dot_emscripten="~/.emscripten"):
+                            spidermonkey_engine, nodejs_path, compiler_opts,
+                            dot_emscripten="~/.emscripten"):
     dot_emscripten = os.path.abspath(os.path.expanduser(dot_emscripten))
     
     filled_config = EMSCRIPTEN_CONFIG
@@ -27,7 +29,8 @@ def write_emscripten_config(llvm_root, v8_engine, closure_compiler, emscripten_r
     filled_config = filled_config.replace("%SPIDERMONKEY_ENGINE%", spidermonkey_engine)
     filled_config = filled_config.replace("%NODE_JS%", nodejs_path)
     filled_config = filled_config.replace("%CLOSURE_COMPILER%", closure_compiler)
-    
+    filled_config = filled_config.replace("%COMPILER_OPTS%", ",".join('"%s"' % c for c in compiler_opts))
+
     if os.path.exists(dot_emscripten):
         previous_config = open(dot_emscripten, 'r').read()
         if previous_config == filled_config:

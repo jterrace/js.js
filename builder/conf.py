@@ -14,9 +14,9 @@ MOZILLA_CENTRAL_URL = "http://hg.mozilla.org/mozilla-central/"
 MOZILLA_CENTRAL_TAG = "AURORA_BASE_20110927"
 
 #the URL for LLVM, Clang, and Compiler RT
-LLVM_URL = "http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_30/final/"
-CLANG_URL = "http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_30/final/"
-COMPILER_RT_URL = "http://llvm.org/svn/llvm-project/compiler-rt/tags/RELEASE_30/final/"
+LLVM_URL = "http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_31/final/"
+CLANG_URL = "http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_31/final/"
+COMPILER_RT_URL = "http://llvm.org/svn/llvm-project/compiler-rt/tags/RELEASE_31/final/"
 
 #URL for V8 JavaScript engine
 V8_URL = "http://v8.googlecode.com/svn/tags/3.8.4/"

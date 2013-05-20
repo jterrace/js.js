@@ -59,13 +59,13 @@ def get_spidermonkey_path():
 def get_closure_compiler_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.CLOSURE_COMPILER_DIR, "compiler.jar")
 def get_emscripten_dir():
-    return util.abspath_join(CURDIR, "../external/emscripten")
+    return util.abspath_join(CURDIR, "../external.latest/emscripten")
 def get_emconfigure_path():
     return util.abspath_join(get_emscripten_dir(), "emconfigure")
 def get_emcc_path():
     return util.abspath_join(get_emscripten_dir(), "emcc")
 def get_nodejs_dir():
-    return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.6.7")
+    return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.10.3")
 def get_nodejs_path():
     return util.abspath_join(get_nodejs_dir(), "node")
 def get_jsjs_out(filename="js.js"):
@@ -102,7 +102,7 @@ def deps(**kwargs):
     clangpp_path = get_clangpp_path()
     clang_found = util.is_exe(clang_path) and util.is_exe(clangpp_path)
     if not clang_found:
-        util.run_command(["make"], cwd=llvmdir)
+        util.run_command(["make", "-j8"], cwd=llvmdir)
     clang_found = util.is_exe(clang_path) and util.is_exe(clangpp_path)
     if not clang_found:
         sys.stderr.write("Failed to build LLVM clang/clang++\n")
@@ -148,7 +148,7 @@ def deps(**kwargs):
     if not os.path.isfile(util.abspath_join(spidermonkey_build_dir, "Makefile")):
         util.run_command(["./configure"], cwd=spidermonkey_build_dir)
     if not util.is_exe(spidermonkey_path):
-        util.run_command(["make"], cwd=spidermonkey_build_dir)
+        util.run_command(["make", "-j8"], cwd=spidermonkey_build_dir)
     if not util.is_exe(spidermonkey_path):
         sys.stderr.write("Failed to build SpiderMonkey js executable\n")
         sys.exit(1)
@@ -168,7 +168,7 @@ def deps(**kwargs):
     nodejs_path = get_nodejs_path()
     if not util.is_exe(nodejs_path):
         util.run_command(["./configure"], cwd=nodejs_dir_path)
-        util.run_command(["make"], cwd=nodejs_dir_path)
+        util.run_command(["make", "-j8"], cwd=nodejs_dir_path)
     if not util.is_exe(nodejs_path):
         sys.stderr.write("Failed to build nodejs.\n")
         sys.exit(1)
@@ -240,6 +240,9 @@ def compile(**kwargs):
     MacroAssemblerX86Common_cpp_path = util.abspath_join(js_src_dir, "./assembler/assembler/MacroAssemblerX86Common.cpp")
     filter_file(MacroAssemblerX86Common_cpp_path, compile_filters.MacroAssemblerX86Common_cpp_filters)
     
+    ExecutableAllocator_h_path = util.abspath_join(js_src_dir, "./assembler/jit/ExecutableAllocator.h")
+    filter_file(ExecutableAllocator_h_path, compile_filters.ExecutableAllocator_filters)
+    
     expandlibs_config_path = util.abspath_join(js_src_dir, "./config/expandlibs_config.py")
     filter_file(expandlibs_config_path, compile_filters.expandlibs_config_filters)
     
@@ -266,8 +269,8 @@ def compile(**kwargs):
     make_success = os.path.exists(libjs_static_out) and os.path.exists(js_shell_bc_out)
     
     if not make_success:
-        util.run_command(["make", "-C", "config"], cwd=js_src_dir)
-        util.run_command(["make", "jsautocfg.h"], cwd=js_src_dir)
+        util.run_command(["make", "-j8", "-C", "config"], cwd=js_src_dir) #EMCC_LLVM_TARGET=i386-pc-linux-gnu ??
+        util.run_command(["make", "-j8", "jsautocfg.h"], cwd=js_src_dir) #EMCC_LLVM_TARGET=i386-pc-linux-gnu ??
         
         jscpucfg_h_path = util.abspath_join(js_src_dir, "./jscpucfg.h")
         filter_file(jscpucfg_h_path, compile_filters.jscpucfg_filters)
@@ -283,7 +286,7 @@ def compile(**kwargs):
         jstypes_h_path = util.abspath_join(js_src_dir, "./jstypes.h")
         filter_file(jstypes_h_path, compile_filters.jstypes_h_filters)
         
-        util.run_command(["make"], cwd=js_src_dir, added_env={"EMCC_DEBUG": "1"})
+        util.run_command(["make", "-j8"], cwd=js_src_dir, added_env={"EMCC_DEBUG": "1"})
     
     make_success = os.path.exists(libjs_static_out) and os.path.exists(js_shell_bc_out)
     if not make_success:

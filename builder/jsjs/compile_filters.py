@@ -63,8 +63,12 @@ def remove_jsapi_asm(line):
         return line.replace("asm volatile(\"\":: \"g\" (hold) : \"memory\");", "//asm volatile(\"\":: \"g\" (hold) : \"memory\");")
     return line
 
+def force_VA_HAVE_LIST_AS_ARRAY(line):
+    return line.replace("JS_ADDRESSOF_VA_LIST(ap))) {", "*(va_list**)&ap))")
+
 def jsapi_filters(line):
     line = remove_jsapi_asm(line)
+    line = force_VA_HAVE_LIST_AS_ARRAY(line)
     return line
 
 def remove_MacroAssemblerX86Common_setSSEState_asm(line):
@@ -76,6 +80,9 @@ def MacroAssemblerX86Common_filters(line):
 
 def change_MacroAssemblerX86Common_cpp_ifdef(line):
     return line.replace("#if WTF_CPU_X86 || WTF_CPU_X86_64", "#if (WTF_CPU_X86 || WTF_CPU_X86_64) && ENABLE_ASSEMBLER")
+
+def ExecutableAllocator_filters(line):
+    return line.replace("#error \"The cacheFlush support is missing on this platform.\"", "static void cacheFlush(void*, size_t){}")
 
 def MacroAssemblerX86Common_cpp_filters(line):
     line = change_MacroAssemblerX86Common_cpp_ifdef(line)

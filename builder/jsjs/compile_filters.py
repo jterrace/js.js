@@ -68,7 +68,7 @@ def force_VA_HAVE_LIST_AS_ARRAY(line):
 
 def jsapi_filters(line):
     line = remove_jsapi_asm(line)
-    line = force_VA_HAVE_LIST_AS_ARRAY(line)
+#    line = force_VA_HAVE_LIST_AS_ARRAY(line)
     return line
 
 def remove_MacroAssemblerX86Common_setSSEState_asm(line):

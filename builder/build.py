@@ -59,7 +59,7 @@ def get_spidermonkey_path():
 def get_closure_compiler_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.CLOSURE_COMPILER_DIR, "compiler.jar")
 def get_emscripten_dir():
-    return util.abspath_join(CURDIR, "../external.latest/emscripten")
+    return util.abspath_join(CURDIR, "../external/emscripten")
 def get_emconfigure_path():
     return util.abspath_join(get_emscripten_dir(), "emconfigure")
 def get_emcc_path():

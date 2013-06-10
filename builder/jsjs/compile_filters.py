@@ -63,12 +63,8 @@ def remove_jsapi_asm(line):
         return line.replace("asm volatile(\"\":: \"g\" (hold) : \"memory\");", "//asm volatile(\"\":: \"g\" (hold) : \"memory\");")
     return line
 
-def force_VA_HAVE_LIST_AS_ARRAY(line):
-    return line.replace("JS_ADDRESSOF_VA_LIST(ap))) {", "*(va_list**)&ap))")
-
 def jsapi_filters(line):
     line = remove_jsapi_asm(line)
-#    line = force_VA_HAVE_LIST_AS_ARRAY(line)
     return line
 
 def remove_MacroAssemblerX86Common_setSSEState_asm(line):

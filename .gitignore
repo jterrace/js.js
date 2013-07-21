@@ -1,6 +1,18 @@
-.project
-.pydevproject
-.settings
+*.diff
 *.pyc
-builder/build
-*__pycache__
+*~
+*.bc
+src/relooper*.js
+
+# Ignore generated files 
+src/relooper.js
+src/relooper.js.raw.js
+src/relooper/*.o
+src/relooper/*.out
+
+tests/fake/
+tests/freetype/objs/*.o
+tests/freetype/objs/*.lo
+
+third_party/lzma.js/lzip/*.o
+third_party/lzma.js/lzma-native

@@ -192,8 +192,7 @@ def deps(**kwargs):
                                        get_emscripten_dir(),
                                        get_native_spidermonkey_path(),
                                        get_nodejs_path(),
-				       ['-Wno-return-type-c-linkage', '-s ASM_JS=1'])
-    
+				       ['-Wno-return-type-c-linkage', '-Wno-extended-offsetof', '-Wno-unused-private-field']) 
     print("[DONE] - deps")
 
 def compile(**kwargs):
@@ -203,21 +202,15 @@ def compile(**kwargs):
     js_src_dir = util.abspath_join(mozdir, "js/src")
     spidermonkey_build_path = util.abspath_join(js_src_dir, "results_js")
     print("Using SpiderMonkey js/src directory: '%s'" % js_src_dir)
-    
-    if kwargs.get('clean', False):
-        try:
-            shutil.rmtree(spidermonkey_build_path)
-            os.remove(util.abspath_join(js_src_dir, "configure"))
-        except OSError:
-            pass
-        
-        util.run_command(["hg", "revert"], cwd=mozdir)
-    
+
+    # clean up the spidermonkey folder   
+    if os.path.exists(spidermonkey_build_path):
+        shutil.rmtree(spidermonkey_build_path)
+    os.makedirs(spidermonkey_build_path)
+    #util.run_command(["hg", "revert"], cwd=mozdir)    
+    #os.remove(util.abspath_join(js_src_dir, "configure"))
     if not util.is_exe(util.abspath_join(js_src_dir, "./configure")):
         util.run_command(["autoreconf2.13"], cwd=js_src_dir)
-
-    if not os.path.exists(spidermonkey_build_path):
-	os.makedirs(spidermonkey_build_path)
     
     emconfigure = get_emconfigure_path()
     
@@ -292,7 +285,7 @@ def compile(**kwargs):
         jscpucfg_h_path = util.abspath_join(js_src_dir, "./jscpucfg.h")
         filter_file(jscpucfg_h_path, compile_filters.jscpucfg_filters)
 
-        jsautocfg_h_path = util.abspath_join(js_src_dir, "./jsautocfg.h")
+        jsautocfg_h_path = util.abspath_join(spidermonkey_build_path, "./jsautocfg.h")
         filter_file(jsautocfg_h_path, compile_filters.jscpucfg_filters)
         
         jsconfig_h_path = util.abspath_join(spidermonkey_build_path, "./js-config.h")
@@ -304,7 +297,11 @@ def compile(**kwargs):
         jstypes_h_path = util.abspath_join(js_src_dir, "./jstypes.h")
         filter_file(jstypes_h_path, compile_filters.jstypes_h_filters)
         
-        util.run_command(["make", "-j7"], cwd=spidermonkey_build_path, added_env={"EMCC_DEBUG": "1"})
+        build_args = ['make']
+        opt_level = kwargs['O']
+        if opt_level != 0:
+	    build_args.extend(['-j7'])
+        util.run_command(build_args, cwd=spidermonkey_build_path, added_env={"EMCC_DEBUG": "1"})
     
     make_success = os.path.exists(libjs_static_out) and os.path.exists(js_shell_bc_out)
     if not make_success:
@@ -364,6 +361,9 @@ def translate(**kwargs):
     if opt_level == 0:
         added_env['EMCC_LEAVE_INPUTS_RAW']='1'
     
+    if opt_level != 0:
+	extra_args.extend(['-s', 'ASMJS=1'])
+
     extra_args.extend(['--typed-arrays', '2'])
     extra_args.extend(['--closure', str(kwargs['closure'])])
     extra_args.extend(['-s', 'LABEL_DEBUG=%d' % kwargs['label_debug']])

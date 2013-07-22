@@ -77,6 +77,9 @@ def MacroAssemblerX86Common_filters(line):
 def change_MacroAssemblerX86Common_cpp_ifdef(line):
     return line.replace("#if WTF_CPU_X86 || WTF_CPU_X86_64", "#if (WTF_CPU_X86 || WTF_CPU_X86_64) && ENABLE_ASSEMBLER")
 
+def ExecutableAllocator_filters(line):
+    return line.replace("#error \"The cacheFlush support is missing on this platform.\"", "static void cacheFlush(void*, size_t){}")
+
 def MacroAssemblerX86Common_cpp_filters(line):
     line = change_MacroAssemblerX86Common_cpp_ifdef(line)
     return line

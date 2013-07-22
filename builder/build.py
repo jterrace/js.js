@@ -41,21 +41,23 @@ def ensure_needed_commands():
 def get_llvm_dir():
     return util.abspath_join(BUILD_DIR_ABS, conf.LLVM_DIR)
 def get_llvm_bindir():
-    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin")
+    return util.abspath_join(get_llvm_dir(), "Release+Asserts/bin")
 def get_clang_path():
-    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/clang")
+    return util.abspath_join(get_llvm_dir(), "Release+Asserts/bin/clang")
 def get_clangpp_path():
-    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/clang++")
+    return util.abspath_join(get_llvm_dir(), "Release+Asserts/bin/clang++")
 def get_llvm_link_path():
-    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/llvm-link")
+    return util.abspath_join(get_llvm_dir(), "Release+Asserts/bin/llvm-link")
 def get_llvm_dis_path():
-    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/llvm-dis")
+    return util.abspath_join(get_llvm_dir(), "Release+Asserts/bin/llvm-dis")
 def get_llvm_ar_path():
-    return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/llvm-ar")
+    return util.abspath_join(get_llvm_dir(), "Release+Asserts/bin/llvm-ar")
 def get_v8_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.V8_DIR, "d8")
-def get_spidermonkey_path():
-    return util.abspath_join(BUILD_DIR_ABS, conf.SPIDERMONKEY_DIR, "js/src/shell/js")
+def get_native_spidermonkey_exes_path():
+    return util.abspath_join(BUILD_DIR_ABS, conf.SPIDERMONKEY_DIR, "js/src/results_native")
+def get_native_spidermonkey_path():
+    return util.abspath_join(get_native_spidermonkey_exes_path(), "shell/js")
 def get_closure_compiler_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.CLOSURE_COMPILER_DIR, "compiler.jar")
 def get_emscripten_dir():
@@ -65,7 +67,7 @@ def get_emconfigure_path():
 def get_emcc_path():
     return util.abspath_join(get_emscripten_dir(), "emcc")
 def get_nodejs_dir():
-    return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.6.7")
+    return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.10.3")
 def get_nodejs_path():
     return util.abspath_join(get_nodejs_dir(), "node")
 def get_jsjs_out(filename="js.js"):
@@ -102,7 +104,7 @@ def deps(**kwargs):
     clangpp_path = get_clangpp_path()
     clang_found = util.is_exe(clang_path) and util.is_exe(clangpp_path)
     if not clang_found:
-        util.run_command(["make"], cwd=llvmdir)
+        util.run_command(["make", "-j7", "ENABLE_OPTIMIZED=1"], cwd=llvmdir)
     clang_found = util.is_exe(clang_path) and util.is_exe(clangpp_path)
     if not clang_found:
         sys.stderr.write("Failed to build LLVM clang/clang++\n")
@@ -141,18 +143,21 @@ def deps(**kwargs):
     print("Checking for SpiderMonkey: '%s'" % spidermonkey_dir)
     if not os.path.isdir(util.abspath_join(spidermonkey_dir, "browser")):
         util.hg_clone(conf.SPIDERMONKEY_URL, spidermonkey_dir, conf.SPIDERMONKEY_TAG)
-    spidermonkey_build_dir = util.abspath_join(spidermonkey_dir, "js/src")
-    spidermonkey_path = get_spidermonkey_path()
-    if not os.path.isfile(util.abspath_join(spidermonkey_build_dir, "configure")):
-        util.run_command(["autoreconf2.13"], cwd=spidermonkey_build_dir)
+    spidermonkey_root_dir = util.abspath_join(spidermonkey_dir, "js/src")
+    spidermonkey_build_dir = util.abspath_join(spidermonkey_root_dir, "results_native")
+    if not os.path.exists(spidermonkey_build_dir):
+        os.makedirs(spidermonkey_build_dir)
+    spidermonkey_path = get_native_spidermonkey_path()
+    if not os.path.isfile(util.abspath_join(spidermonkey_root_dir, "configure")):
+        util.run_command(["autoreconf2.13"], cwd=spidermonkey_root_dir)
     if not os.path.isfile(util.abspath_join(spidermonkey_build_dir, "Makefile")):
-        util.run_command(["./configure"], cwd=spidermonkey_build_dir)
+        util.run_command(["../configure"], cwd=spidermonkey_build_dir)
     if not util.is_exe(spidermonkey_path):
-        util.run_command(["make"], cwd=spidermonkey_build_dir)
+        util.run_command(["make", "-j7"], cwd=spidermonkey_build_dir)
     if not util.is_exe(spidermonkey_path):
-        sys.stderr.write("Failed to build SpiderMonkey js executable\n")
+        sys.stderr.write("Failed to build native SpiderMonkey js executable\n")
         sys.exit(1)
-    print("Using js: " + spidermonkey_path)
+    print("Using SpiderMonkey js: " + spidermonkey_path)
     
     nodejs_dir = util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR)
     util.mkdir(nodejs_dir)
@@ -168,7 +173,7 @@ def deps(**kwargs):
     nodejs_path = get_nodejs_path()
     if not util.is_exe(nodejs_path):
         util.run_command(["./configure"], cwd=nodejs_dir_path)
-        util.run_command(["make"], cwd=nodejs_dir_path)
+        util.run_command(["make", "-j7"], cwd=nodejs_dir_path)
     if not util.is_exe(nodejs_path):
         sys.stderr.write("Failed to build nodejs.\n")
         sys.exit(1)
@@ -185,36 +190,32 @@ def deps(**kwargs):
                                        get_v8_path(),
                                        get_closure_compiler_path(),
                                        get_emscripten_dir(),
-                                       get_spidermonkey_path(),
+                                       get_native_spidermonkey_path(),
                                        get_nodejs_path(),
-				       ['-Wno-return-type-c-linkage'])
-    
+				       ['-Wno-return-type-c-linkage', '-Wno-extended-offsetof', '-Wno-unused-private-field']) 
     print("[DONE] - deps")
 
 def compile(**kwargs):
     print("[START] - compile")
     
-    mozdir = util.abspath_join(BUILD_DIR_ABS, conf.MOZILLA_CENTRAL_DIR)
+    mozdir = util.abspath_join(BUILD_DIR_ABS, conf.SPIDERMONKEY_DIR)
     js_src_dir = util.abspath_join(mozdir, "js/src")
-    if not os.path.isdir(util.abspath_join(mozdir, "browser")):
-        util.hg_clone(conf.MOZILLA_CENTRAL_URL, mozdir, conf.MOZILLA_CENTRAL_TAG)
-    print("Using mozilla-central js/src directory: '%s'" % js_src_dir)
-    
-    if kwargs.get('clean', False):
-        try:
-            shutil.rmtree(js_src_dir)
-        except OSError:
-            pass
-        
-        util.run_command(["hg", "revert", "js/src"], cwd=mozdir)
-    
+    spidermonkey_build_path = util.abspath_join(js_src_dir, "results_js")
+    print("Using SpiderMonkey js/src directory: '%s'" % js_src_dir)
+
+    # clean up the spidermonkey folder   
+    if os.path.exists(spidermonkey_build_path):
+        shutil.rmtree(spidermonkey_build_path)
+    os.makedirs(spidermonkey_build_path)
+    #util.run_command(["hg", "revert"], cwd=mozdir)    
+    #os.remove(util.abspath_join(js_src_dir, "configure"))
     if not util.is_exe(util.abspath_join(js_src_dir, "./configure")):
         util.run_command(["autoreconf2.13"], cwd=js_src_dir)
     
     emconfigure = get_emconfigure_path()
     
     configure_line = [emconfigure,
-                      "./configure",
+                      "../configure",
                       "--disable-methodjit",
                       "--disable-monoic",
                       "--disable-polyic",
@@ -225,9 +226,11 @@ def compile(**kwargs):
                       "--disable-optimize"
                       ]
     
-    makefile_path = util.abspath_join(js_src_dir, "./Makefile")
+    os.environ['EMCC_LLVM_TARGET'] = 'i386-pc-linux-gnu' # Avoid vaarg type issues in Emscripten
+
+    makefile_path = util.abspath_join(spidermonkey_build_path, "./Makefile")
     if not os.path.isfile(makefile_path):
-        util.run_command(configure_line, cwd=js_src_dir)
+        util.run_command(configure_line, cwd=spidermonkey_build_path)
     
     filter_file(makefile_path, compile_filters.makefile_filters)
     
@@ -240,7 +243,10 @@ def compile(**kwargs):
     MacroAssemblerX86Common_cpp_path = util.abspath_join(js_src_dir, "./assembler/assembler/MacroAssemblerX86Common.cpp")
     filter_file(MacroAssemblerX86Common_cpp_path, compile_filters.MacroAssemblerX86Common_cpp_filters)
     
-    expandlibs_config_path = util.abspath_join(js_src_dir, "./config/expandlibs_config.py")
+    ExecutableAllocator_h_path = util.abspath_join(js_src_dir, "./assembler/jit/ExecutableAllocator.h")
+    filter_file(ExecutableAllocator_h_path, compile_filters.ExecutableAllocator_filters)
+    
+    expandlibs_config_path = util.abspath_join(spidermonkey_build_path, "./config/expandlibs_config.py")
     filter_file(expandlibs_config_path, compile_filters.expandlibs_config_filters)
     
     jsgcchunk_cpp_path = util.abspath_join(js_src_dir, "./jsgcchunk.cpp")
@@ -261,29 +267,41 @@ def compile(**kwargs):
     jsinterp_cpp_path = util.abspath_join(js_src_dir, "./jsinterp.cpp")
     filter_file(jsinterp_cpp_path, compile_filters.jsinterp_cpp_filters)
     
-    js_shell_bc_out = util.abspath_join(js_src_dir, "./shell/js")
-    libjs_static_out = util.abspath_join(js_src_dir, "./libjs_static.a")
+    js_shell_bc_out = util.abspath_join(spidermonkey_build_path, "./shell/js")
+    libjs_static_out = util.abspath_join(spidermonkey_build_path, "./libjs_static.a")
     make_success = os.path.exists(libjs_static_out) and os.path.exists(js_shell_bc_out)
     
     if not make_success:
-        util.run_command(["make", "-C", "config"], cwd=js_src_dir)
-        util.run_command(["make", "jsautocfg.h"], cwd=js_src_dir)
-        
+        js_dist_path = util.abspath_join(spidermonkey_build_path, "dist")
+        if not os.path.exists(js_dist_path):
+            os.makedirs(js_dist_path)
+        js_bin_path = util.abspath_join(js_dist_path, "bin")
+        if not os.path.islink(js_bin_path):
+            os.symlink(util.abspath_join(get_native_spidermonkey_exes_path(), "dist/bin"), js_bin_path)
+
+        util.run_command(["make", "-C", "config"], cwd=spidermonkey_build_path)
+        util.run_command(["make", "jsautocfg.h"], cwd=spidermonkey_build_path)
+
         jscpucfg_h_path = util.abspath_join(js_src_dir, "./jscpucfg.h")
         filter_file(jscpucfg_h_path, compile_filters.jscpucfg_filters)
-        jsautocfg_h_path = util.abspath_join(js_src_dir, "./jsautocfg.h")
+
+        jsautocfg_h_path = util.abspath_join(spidermonkey_build_path, "./jsautocfg.h")
         filter_file(jsautocfg_h_path, compile_filters.jscpucfg_filters)
         
-        jsconfig_h_path = util.abspath_join(js_src_dir, "./js-config.h")
+        jsconfig_h_path = util.abspath_join(spidermonkey_build_path, "./js-config.h")
         filter_file(jsconfig_h_path, compile_filters.jsconfig_filters)
         
-        jsconfdefs_h_path = util.abspath_join(js_src_dir, "./js-confdefs.h")
+        jsconfdefs_h_path = util.abspath_join(spidermonkey_build_path, "./js-confdefs.h")
         filter_file(jsconfdefs_h_path, compile_filters.jsconfdefs_filters)
         
         jstypes_h_path = util.abspath_join(js_src_dir, "./jstypes.h")
         filter_file(jstypes_h_path, compile_filters.jstypes_h_filters)
         
-        util.run_command(["make"], cwd=js_src_dir, added_env={"EMCC_DEBUG": "1"})
+        build_args = ['make']
+        opt_level = kwargs['O']
+        if opt_level != 0:
+	    build_args.extend(['-j7'])
+        util.run_command(build_args, cwd=spidermonkey_build_path, added_env={"EMCC_DEBUG": "1"})
     
     make_success = os.path.exists(libjs_static_out) and os.path.exists(js_shell_bc_out)
     if not make_success:
@@ -299,13 +317,13 @@ def compile(**kwargs):
 
     command = [get_llvm_link_path(), '-o', libjs_bc]
     command.extend(o_files)
-    util.run_command(command, cwd=js_src_dir)
+    util.run_command(command, cwd=spidermonkey_build_path)
     util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', libjs_ll, libjs_bc])
 
-    js_shell_o_out = util.abspath_join(js_src_dir, "./shell/js.o")
-    jsheaptools_o = util.abspath_join(js_src_dir, "./shell/jsheaptools.o")
-    jsoptparse_o = util.abspath_join(js_src_dir, "./shell/jsoptparse.o")
-    jsworkers_o = util.abspath_join(js_src_dir, "./shell/jsworkers.o")
+    js_shell_o_out = util.abspath_join(spidermonkey_build_path, "./shell/js.o")
+    jsheaptools_o = util.abspath_join(spidermonkey_build_path, "./shell/jsheaptools.o")
+    jsoptparse_o = util.abspath_join(spidermonkey_build_path, "./shell/jsoptparse.o")
+    jsworkers_o = util.abspath_join(spidermonkey_build_path, "./shell/jsworkers.o")
     util.run_command([get_llvm_link_path(), '-o', js_combined_bc, libjs_bc, js_shell_o_out, jsheaptools_o, jsoptparse_o, jsworkers_o])
     util.run_command([get_llvm_dis_path(), '-show-annotations', '-o', js_combined_ll, js_combined_bc])
     
@@ -343,6 +361,9 @@ def translate(**kwargs):
     if opt_level == 0:
         added_env['EMCC_LEAVE_INPUTS_RAW']='1'
     
+    if opt_level != 0:
+	extra_args.extend(['-s', 'ASMJS=1'])
+
     extra_args.extend(['--typed-arrays', '2'])
     extra_args.extend(['--closure', str(kwargs['closure'])])
     extra_args.extend(['-s', 'LABEL_DEBUG=%d' % kwargs['label_debug']])

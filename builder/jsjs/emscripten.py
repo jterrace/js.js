@@ -7,18 +7,17 @@ EMSCRIPTEN_CONFIG = """########
 ########
 EMSCRIPTEN_ROOT = "%EMSCRIPTEN_ROOT%"
 LLVM_ROOT = "%LLVM_ROOT%"
-SPIDERMONKEY_ENGINE = ["%SPIDERMONKEY_ENGINE%", '-m', '-n']
 NODE_JS = "%NODE_JS%"
 V8_ENGINE = "%V8_ENGINE%"
 CLOSURE_COMPILER = "%CLOSURE_COMPILER%"
 TEMP_DIR = '/tmp'
 COMPILER_ENGINE = V8_ENGINE
-JS_ENGINES = [NODE_JS, SPIDERMONKEY_ENGINE, V8_ENGINE]
+JS_ENGINES = [NODE_JS, V8_ENGINE]
 COMPILER_OPTS = [%COMPILER_OPTS%]
 """
 
 def write_emscripten_config(llvm_root, v8_engine, closure_compiler, emscripten_root,
-                            spidermonkey_engine, nodejs_path, compiler_opts,
+                            nodejs_path, compiler_opts,
                             dot_emscripten="~/.emscripten"):
     dot_emscripten = os.path.abspath(os.path.expanduser(dot_emscripten))
     
@@ -26,7 +25,6 @@ def write_emscripten_config(llvm_root, v8_engine, closure_compiler, emscripten_r
     filled_config = filled_config.replace("%EMSCRIPTEN_ROOT%", emscripten_root)
     filled_config = filled_config.replace("%LLVM_ROOT%", llvm_root)
     filled_config = filled_config.replace("%V8_ENGINE%", v8_engine)
-    filled_config = filled_config.replace("%SPIDERMONKEY_ENGINE%", spidermonkey_engine)
     filled_config = filled_config.replace("%NODE_JS%", nodejs_path)
     filled_config = filled_config.replace("%CLOSURE_COMPILER%", closure_compiler)
     filled_config = filled_config.replace("%COMPILER_OPTS%", ",".join('"%s"' % c for c in compiler_opts))

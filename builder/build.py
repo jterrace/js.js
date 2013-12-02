@@ -53,9 +53,7 @@ def get_llvm_dis_path():
 def get_llvm_ar_path():
     return util.abspath_join(get_llvm_dir(), "Debug+Asserts/bin/llvm-ar")
 def get_v8_path():
-    return util.abspath_join(BUILD_DIR_ABS, conf.V8_DIR, "d8")
-def get_spidermonkey_path():
-    return util.abspath_join(BUILD_DIR_ABS, conf.SPIDERMONKEY_DIR, "js/src/shell/js")
+    return util.abspath_join(BUILD_DIR_ABS, conf.V8_DIR, "out", "native", "d8")
 def get_closure_compiler_path():
     return util.abspath_join(BUILD_DIR_ABS, conf.CLOSURE_COMPILER_DIR, "compiler.jar")
 def get_emscripten_dir():
@@ -65,7 +63,7 @@ def get_emconfigure_path():
 def get_emcc_path():
     return util.abspath_join(get_emscripten_dir(), "emcc")
 def get_nodejs_dir():
-    return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.6.7")
+    return util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR, "node-v0.10.22")
 def get_nodejs_path():
     return util.abspath_join(get_nodejs_dir(), "node")
 def get_jsjs_out(filename="js.js"):
@@ -116,7 +114,8 @@ def deps(**kwargs):
         util.svn_co(conf.V8_URL, v8dir)
     v8_path = get_v8_path()
     if not util.is_exe(v8_path):
-        util.run_command(["scons", "d8"], cwd=v8dir)
+        util.run_command(["make", "dependencies"], cwd=v8dir)
+        util.run_command(["make", "native"], cwd=v8dir)
     if not util.is_exe(v8_path):
         sys.stderr.write("Failed to build v8 d8 executable\n")
         sys.exit(1)
@@ -136,23 +135,6 @@ def deps(**kwargs):
         sys.stderr.write("Failed to get closure compiler\n")
         sys.exit(1)
     print("Using compiler.jar: " + closure_compiler)
-    
-    spidermonkey_dir = util.abspath_join(BUILD_DIR_ABS, conf.SPIDERMONKEY_DIR)
-    print("Checking for SpiderMonkey: '%s'" % spidermonkey_dir)
-    if not os.path.isdir(util.abspath_join(spidermonkey_dir, "browser")):
-        util.hg_clone(conf.SPIDERMONKEY_URL, spidermonkey_dir, conf.SPIDERMONKEY_TAG)
-    spidermonkey_build_dir = util.abspath_join(spidermonkey_dir, "js/src")
-    spidermonkey_path = get_spidermonkey_path()
-    if not os.path.isfile(util.abspath_join(spidermonkey_build_dir, "configure")):
-        util.run_command(["autoreconf2.13"], cwd=spidermonkey_build_dir)
-    if not os.path.isfile(util.abspath_join(spidermonkey_build_dir, "Makefile")):
-        util.run_command(["./configure"], cwd=spidermonkey_build_dir)
-    if not util.is_exe(spidermonkey_path):
-        util.run_command(["make"], cwd=spidermonkey_build_dir)
-    if not util.is_exe(spidermonkey_path):
-        sys.stderr.write("Failed to build SpiderMonkey js executable\n")
-        sys.exit(1)
-    print("Using js: " + spidermonkey_path)
     
     nodejs_dir = util.abspath_join(BUILD_DIR_ABS, conf.NODEJS_DIR)
     util.mkdir(nodejs_dir)
@@ -185,7 +167,6 @@ def deps(**kwargs):
                                        get_v8_path(),
                                        get_closure_compiler_path(),
                                        get_emscripten_dir(),
-                                       get_spidermonkey_path(),
                                        get_nodejs_path(),
 				       ['-Wno-return-type-c-linkage'])
     

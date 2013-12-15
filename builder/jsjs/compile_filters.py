@@ -213,3 +213,6 @@ def jsinterp_cpp_filters(line):
     line = change_case_varlen(line)
     line = change_case_empty(line)
     return line
+
+def configure_filters(line):
+    return line.replace('Werror=return-type', 'Wno-error=return-type')

@@ -163,12 +163,11 @@ def deps(**kwargs):
         sys.stderr.write("Did you forget to run 'git submodule update --init --recursive' after cloning?\n")
         sys.exit(1)
     
-    emscripten.write_emscripten_config(get_llvm_bindir(),
-                                       get_v8_path(),
-                                       get_closure_compiler_path(),
-                                       get_emscripten_dir(),
-                                       get_nodejs_path(),
-				       ['-Wno-return-type-c-linkage'])
+    emscripten.write_emscripten_config(
+        get_llvm_bindir(), get_v8_path(), get_closure_compiler_path(),
+        get_emscripten_dir(), get_nodejs_path(), [
+            '-Wno-return-type-c-linkage', '-Wno-extended-offsetof',
+            '-Wno-unused-private-field', '-Wno-error', '-Wno-error=return-type'])
     
     print("[DONE] - deps")
 
@@ -205,9 +204,13 @@ def compile(**kwargs):
                       "--disable-debug",
                       "--disable-optimize"
                       ]
-    
+
+    configure_in_path = util.abspath_join(js_src_dir, "configure.in")
+    configure_path = util.abspath_join(js_src_dir, "configure")
     makefile_path = util.abspath_join(js_src_dir, "./Makefile")
     if not os.path.isfile(makefile_path):
+        filter_file(configure_in_path, compile_filters.configure_filters)
+        filter_file(configure_path, compile_filters.configure_filters)
         util.run_command(configure_line, cwd=js_src_dir)
     
     filter_file(makefile_path, compile_filters.makefile_filters)

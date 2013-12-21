@@ -155,7 +155,7 @@ var JSJS = {
                            "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
                            "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
                            "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0,
-                           "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_STATIC);
+                           "*",0,0,0,"*",0,0,0,"*",0,0,0,"*",0,0,0], ALLOC_NORMAL);
         return cls;
     },
     Init : function Init(params) {
@@ -728,10 +728,10 @@ JSJS.Types['objPtr'] = JSJS.Types.objPtr;
 JSJS.Types['dynamicPtr'] = JSJS.Types.dynamicPtr;
 JSJS.Types['arrayPtr'] = JSJS.Types.arrayPtr;
     
-JSJS.Types['bool'] = JSJS.Types.primitive('i1', 'b', _BOOLEAN_TO_JSVAL);
-JSJS.Types['i16'] = JSJS.Types.primitive('i16', 'c', _INT_TO_JSVAL);
-JSJS.Types['i32'] = JSJS.Types.primitive('i32', 'i', _INT_TO_JSVAL);
-JSJS.Types['double'] = JSJS.Types.primitive('double', 'd', _DOUBLE_TO_JSVAL);
+JSJS.Types['bool'] = JSJS.Types.primitive('i1', 'b', __Z16BOOLEAN_TO_JSVALi);
+JSJS.Types['i16'] = JSJS.Types.primitive('i16', 'c', __Z12INT_TO_JSVALi);
+JSJS.Types['i32'] = JSJS.Types.primitive('i32', 'i', __Z12INT_TO_JSVALi);
+JSJS.Types['double'] = JSJS.Types.primitive('double', 'd', __Z15DOUBLE_TO_JSVALd);
 JSJS.Types['JSFunctionSpec'] = JSJS.Types.struct(JSJS.Types['charPtr'],
 JSJS.Types['funcPtr'], JSJS.Types['i16'], JSJS.Types['i16']);
 

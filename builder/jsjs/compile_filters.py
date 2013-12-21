@@ -153,14 +153,14 @@ def disable_yarr_jit_define(line):
     return "" if "#define ENABLE_YARR_JIT" in line else line
 def disable_wtf_use_jit_stub_argument_register_define(line):
     return "" if "#define WTF_USE_JIT_STUB_ARGUMENT_REGISTER" in line else line
-def disable_assembler(line):
+def remove_define_assembler(line):
     return "" if "#define ENABLE_ASSEMBLER" in line else line
 def platform_h_filters(line):
     line = disable_jit_define(line)
     line = disable_yarr_define(line)
     line = disable_yarr_jit_define(line)
     line = disable_wtf_use_jit_stub_argument_register_define(line)
-    line = disable_assembler(line)
+    line = remove_define_assembler(line)
     return line
 
 def disable_goto_thing2(line):
@@ -216,3 +216,7 @@ def jsinterp_cpp_filters(line):
 
 def configure_filters(line):
     return line.replace('Werror=return-type', 'Wno-error=return-type')
+
+def gcc_hidden_filters(line):
+    return line.replace('#pragma GCC visibility push(hidden)', '#pragma GCC visibility push(default)')
+

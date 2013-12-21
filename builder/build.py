@@ -226,7 +226,10 @@ def compile(**kwargs):
     
     expandlibs_config_path = util.abspath_join(js_src_dir, "./config/expandlibs_config.py")
     filter_file(expandlibs_config_path, compile_filters.expandlibs_config_filters)
-    
+
+    gcc_hidden_path = util.abspath_join(js_src_dir, "./config/gcc_hidden.h")
+    filter_file(gcc_hidden_path, compile_filters.gcc_hidden_filters)
+
     jsgcchunk_cpp_path = util.abspath_join(js_src_dir, "./jsgcchunk.cpp")
     filter_file(jsgcchunk_cpp_path, compile_filters.jsgchunk_cpp_filters)
     

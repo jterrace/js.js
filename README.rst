@@ -9,7 +9,7 @@ emscripten_ translates the output into JavaScript.
 
 Demos
 -----
-See several running demos `here <http://jterrace.github.com/js.js/>`_.
+See several running demos `here <http://jterrace.github.io/js.js/>`_.
 
 Paper
 -----

@@ -8,8 +8,6 @@ import argparse
 import urllib
 import zipfile
 import shutil
-import filecmp
-import tempfile
 import tarfile
 import subprocess
 

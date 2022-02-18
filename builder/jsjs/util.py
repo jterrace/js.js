@@ -11,7 +11,6 @@ def which(program):
       
       :param program: A name of a command or an absolute path
     """
-    import os
 
     fpath, fname = os.path.split(program)
     if fpath:

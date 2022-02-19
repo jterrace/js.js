@@ -73,7 +73,7 @@ version (useful for debugging and modifications)::
     <script type="text/javascript" src="libjs.O2.js"></script>
     <script type="text/javascript" src="jsjs-wrapper.js"></script>
 
-.. _SpiderMonkey: https://developer.mozilla.org/en/SpiderMonkey
+.. _SpiderMonkey: https://spidermonkey.dev/
 .. _emscripten: http://emscripten.org/
 .. _LLVM: http://llvm.org/
 .. _Sunspider: http://www.webkit.org/perf/sunspider/sunspider.html
